@@ -112,7 +112,7 @@ func (f *File) AddSection(name string) *Section {
 	// add section data to file
 	f.sections = append(f.sections, s)
 
-	if f.lines[len(f.lines)-1].item == nil {
+	if len(f.lines) > 0 && f.lines[len(f.lines)-1].item == nil {
 		// if it's a blank line on the last line, then put it there
 		f.lines[len(f.lines)-1].item = s
 	} else {

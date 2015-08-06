@@ -67,5 +67,5 @@ func main() {
 
 	//fmt.Printf(">> inifile: '%s'\n", inifile)
 	val := inifile.GetKey("sect123.awesome")
-
+	fmt.Printf(">> val: %s\n", val)
 }
