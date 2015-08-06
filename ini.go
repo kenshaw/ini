@@ -67,13 +67,13 @@ func parse(name, filename string, r io.Reader) (*File, error) {
 	// pass through ini/parser package
 	d, err := parser.Parse(name, data)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(fmt.Sprintf("unable to parse %s: %s", name, parser.LastError().Error()))
 	}
 
 	// convert to *parser.File
 	inifile, ok := d.(*parser.File)
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("unable to load %s %s", name, parser.LastError().Error()))
+		return nil, errors.New(fmt.Sprintf("unknown error encountered while parsing %s: %s", name, parser.LastError().Error()))
 	}
 
 	// create file

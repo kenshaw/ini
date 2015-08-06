@@ -58,7 +58,7 @@ var ValueManipFunc = strings.TrimSpace
 
 // Retrieve a formatted last error
 func LastError() error {
-	return errors.New(fmt.Sprintf("on line %d:%d,  near '%s'", lastPosition.line, lastPosition.col, lastText))
+	return errors.New(fmt.Sprintf("error on line %d:%d near '%s'", lastPosition.line, lastPosition.col, lastText))
 }
 
 // helper function taken from pigeon source / examples
