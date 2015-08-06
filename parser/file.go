@@ -40,7 +40,6 @@ func NewFile(lines []*Line) *File {
 			// save kvp
 			kvp, _ := l.item.(*KeyValuePair)
 			lastSection.keys = append(lastSection.keys, kvp.key)
-			//lastSection.values[kvp.key] = l
 		}
 	}
 
