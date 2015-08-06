@@ -1,4 +1,4 @@
-# About ini #
+# About ini [![Build Status](https://travis-ci.org/knq/ini.svg)](https://travis-ci.org/knq/ini) #
 
 A simple [Go](http://www.golang.org/project/) package for manipulating 
 [ini files](https://en.wikipedia.org/wiki/INI_file).
