@@ -130,8 +130,6 @@ func (c Comment) String() string {
 
 // Key Value Pair
 type KeyValuePair struct {
-	//section *Section
-
 	pos position
 
 	key   string
@@ -161,4 +159,27 @@ func (kvp KeyValuePair) String() string {
 	}
 
 	return fmt.Sprintf("%s=%s%s%s", kvp.key, kvp.ws, kvp.value, comment)
+}
+
+// Sub Section
+type SubSection struct {
+	pos position
+
+	name string
+	ws   string
+}
+
+// New Sub Section
+func NewSubSection(pos position, name, ws string) *SubSection {
+	return &SubSection{
+		pos: pos,
+
+		name: name,
+		ws:   ws,
+	}
+}
+
+// Stringer
+func (s SubSection) String() string {
+	return fmt.Sprintf("\"%s\"%s", s.name, s.ws)
 }

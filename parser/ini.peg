@@ -34,13 +34,38 @@ Comment <- cs:(';' / '#') comment:CommentVal {
     return NewComment(c.pos, string(cs.([]byte)), comment.(string)), nil
 }
 
-Section <- '[' name:SectionName ']' ws:_ comment:Comment? {
+CommentVal <- (!LineEnd .)* {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> CommentVal: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
+}
+
+Section <- '[' ws0:_ name:SectionName ws1:_ subsection:(SubSection)? ']' ws2:_ comment:Comment? {
     lastPosition = c.pos
     lastText = string(c.text)
 
     //fmt.Printf(">> Section: %s // '%s'\n", c.pos, name)
+    sub, _ := subsection.(*SubSection)
     com, _ := comment.(*Comment)
-    return NewSection(c.pos, name.(string), ws.(string), com), nil
+    return NewSection(c.pos, ws0.(string), name.(string), ws1.(string), sub, ws2.(string), com), nil
+}
+
+SubSection <- '"' name:SectionName '"' ws:_ {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> SubSection: %s // '%s'\n", c.pos, string(c.text))
+    return NewSubSection(c.pos, name.(string), ws.(string)), nil
+}
+
+SectionName <- [^#; \t\r\n[\]"]+ {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> SectionName: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
 }
 
 KeyValuePair <- key:Key '=' ws:_ val:Value comment:Comment? {
@@ -50,22 +75,6 @@ KeyValuePair <- key:Key '=' ws:_ val:Value comment:Comment? {
     //fmt.Printf(">> KeyValuePair: %s // '%s': '%s'\n", c.pos, key, val)
     com, _ := comment.(*Comment)
     return NewKeyValuePair(c.pos, key.(string), ws.(string), val.(string), com), nil
-}
-
-CommentVal <- (!LineEnd .)* {
-    lastPosition = c.pos
-    lastText = string(c.text)
-
-    //fmt.Printf(">> CommentVal: %s // '%s'\n", c.pos, string(c.text))
-    return string(c.text), nil
-}
-
-SectionName <- [^#;\r\n[\]]+ {
-    lastPosition = c.pos
-    lastText = string(c.text)
-
-    //fmt.Printf(">> SectionName: %s // '%s'\n", c.pos, string(c.text))
-    return string(c.text), nil
 }
 
 Key <- [^#;=\r\n[\]]+ {

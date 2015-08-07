@@ -21,7 +21,7 @@ func NewFile(lines []*Line) *File {
 	}
 
 	// create default section
-	lastSection := NewSection(position{}, "", "", nil)
+	lastSection := NewSection(position{}, "", "", "", nil, "", nil)
 	lastSection.file = ret
 	ret.sections = append(ret.sections, lastSection)
 
@@ -76,20 +76,19 @@ func (f *File) LineCount() int {
 }
 
 // Get raw section names in file
-func (f *File) RawSectionNames() []string {
+/*func (f *File) RawSectionNames() []string {
 	names := make([]string, len(f.sections))
 	for i, s := range f.sections {
 		names[i] = s.RawName()
 	}
 	return names
-}
+}*/
 
 // Get section names in file
-// Section names are passed through KeyManipFunc
 func (f *File) SectionNames() []string {
 	names := make([]string, len(f.sections))
 	for i, s := range f.sections {
-		names[i] = s.Name()
+		names[i] = KeyManipFunc(s.name)
 	}
 	return names
 }
@@ -105,7 +104,7 @@ func (f *File) AddSection(name string) *Section {
 	}
 
 	// create section
-	s := NewSection(position{}, k, "", nil)
+	s := NewSection(position{}, "", k, "", nil, "", nil)
 	s.file = f
 
 	// add section data to file

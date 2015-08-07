@@ -3,6 +3,8 @@ package ini
 import (
 	"fmt"
 	"testing"
+
+	"github.com/knq/ini/parser"
 )
 
 var (
@@ -31,6 +33,15 @@ test=foo
 [test3]
 
 test=bar
+
+
+[test4 "blah"]
+k10=v10
+k11=v11
+
+[test5 "AOEU"]
+
+k12=v12
 	`
 )
 
@@ -60,16 +71,16 @@ func TestParseComplex(t *testing.T) {
 	}
 
 	// test raw section name parsing
-	eraw := []string{"", "   section1   ", "section2 ", "SECTION3", " 毚饯襃ブみょ "}
+	/*eraw := []string{"", "   section1   ", "section2 ", "SECTION3", " 毚饯襃ブみょ "}
 	rawnames := f.RawSectionNames()
 	for i, r := range eraw {
 		if r != rawnames[i] {
 			t.Errorf("raw section name %d should be '%s', got: '%s'", i, r, rawnames[i])
 		}
-	}
+	}*/
 
 	// test clean section name parsing
-	enam := []string{"", "section1", "section2", "section3", "毚饯襃ブみょ"}
+	enam := []string{"", "section1", "section2", "section3", "毚饯襃ブみょ", "test2", "test3", "test4.blah", "test5.AOEU"}
 	names := f.SectionNames()
 	for i, n := range enam {
 		if n != names[i] {
@@ -91,13 +102,15 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 	}
 
 	sectionkeys := map[string][]string{
-		"":         {"defkey1", "defkey2", "defkey3"},
-		"section1": {"key1", "key2"},
-		"section2": {},
-		"section3": {"s3key1", "s3key2"},
-		"毚饯襃ブみょ":   {"䥵妦飌ぞ盯"},
-		"test2":    {"test"},
-		"test3":    {"test"},
+		"":           {"defkey1", "defkey2", "defkey3"},
+		"section1":   {"key1", "key2"},
+		"section2":   {},
+		"section3":   {"s3key1", "s3key2"},
+		"毚饯襃ブみょ":     {"䥵妦飌ぞ盯"},
+		"test2":      {"test"},
+		"test3":      {"test"},
+		"test4.blah": {"k10", "k11"},
+		"test5.AOEU": {"k12"},
 	}
 
 	// check sections and key combinations
@@ -105,11 +118,11 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 		// check section is present
 		s := f.GetSection(name)
 		if s == nil {
-			t.Errorf("Section '%s' should be present in file", name)
+			t.Fatalf("Section '%s' should be present in file", name)
 		}
 
 		// make sure section name is same
-		if name != s.Name() {
+		if name != parser.KeyManipFunc(s.Name()) {
 			t.Errorf("Section '%s' should have same name as Section.Name()", name)
 		}
 
@@ -143,8 +156,12 @@ func TestGetKey(t *testing.T) {
 
 		"毚饯襃ブみょ.䥵妦飌ぞ盯": "覎びゅフォ駧橜 槞㨣",
 
-		"test2.test": "foo",
-		"test3.test": "bar",
+		"test2.test":     "foo",
+		"test3.test":     "bar",
+		"test4.blah.k10": "v10",
+		"test4.BLAH.k10": "",
+		"test4.blah.k11": "v11",
+		"test5.AOEU.k12": "v12",
 	}
 
 	// check each key value as per map
@@ -216,7 +233,7 @@ func TestRenameSection(t *testing.T) {
 
 	// check basic rename section
 	f.RenameSection("sect1", "sect4")
-	d3 := " #com1  \n	[sect4] ;com2\n  k1 = v0;com3\n  k2=   \n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
+	d3 := " #com1  \n	[sect4 ] ;com2\n  k1 = v0;com3\n  k2=   \n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
 	if d3 != f.String() {
 		t.Error("RenameSection should preserve location, spacing, and comments")
 	}
@@ -243,7 +260,7 @@ func TestRenameSection(t *testing.T) {
 	}
 
 	f.SetKey("sect4.k2", "foobar")
-	d4 := " #com1  \n	[sect4] ;com2\n  k1 = v0;com3\n  k2=   foobar\n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
+	d4 := " #com1  \n	[sect4 ] ;com2\n  k1 = v0;com3\n  k2=   foobar\n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
 	if d4 != f.String() {
 		t.Error("after RenameSection, SetKey should preserve location, spacing, and comments")
 	}

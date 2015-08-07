@@ -8,23 +8,29 @@ type Section struct {
 
 	pos position
 
-	name    string
-	ws      string
-	comment *Comment
+	ws0        string
+	name       string
+	ws1        string
+	subsection *SubSection
+	ws2        string
+	comment    *Comment
 
 	keys []string
 }
 
 // New Section
-func NewSection(pos position, name, ws string, comment *Comment) *Section {
+func NewSection(pos position, ws0, name, ws1 string, subsection *SubSection, ws2 string, comment *Comment) *Section {
 	keys := make([]string, 0)
 
 	return &Section{
 		pos: pos,
 
-		name:    name,
-		ws:      ws,
-		comment: comment,
+		ws0:        ws0,
+		name:       name,
+		ws1:        ws1,
+		subsection: subsection,
+		ws2:        ws2,
+		comment:    comment,
 
 		keys: keys,
 	}
@@ -32,27 +38,32 @@ func NewSection(pos position, name, ws string, comment *Comment) *Section {
 
 // Stringer
 func (s Section) String() string {
+	subsection := ""
+	if s.subsection != nil {
+		subsection = s.subsection.String()
+	}
+
 	comment := ""
 	if s.comment != nil {
 		comment = s.comment.String()
 	}
 
-	return fmt.Sprintf("[%s]%s%s", s.name, s.ws, comment)
-}
-
-// Get raw name
-func (s *Section) RawName() string {
-	return s.name
+	return fmt.Sprintf("[%s%s%s%s]%s%s", s.ws0, s.name, s.ws1, subsection, s.ws2, comment)
 }
 
 // Get name
 func (s *Section) Name() string {
-	return KeyManipFunc(s.name)
+	return s.name
 }
 
 // Retrieve defined keys
 func (s *Section) RawKeys() []string {
 	return s.keys
+}
+
+// Retrieve subsection name
+func (s *Section) SubSectionName() string {
+	return s.subsection.name
 }
 
 // Retrieve defined keys
