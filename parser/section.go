@@ -2,7 +2,7 @@ package parser
 
 import "fmt"
 
-// Section
+// Section in a File.
 type Section struct {
 	file *File
 
@@ -15,7 +15,7 @@ type Section struct {
 	keys []string
 }
 
-// New Section
+// New Section.
 func NewSection(pos position, name, ws string, comment *Comment) *Section {
 	keys := make([]string, 0)
 
@@ -30,7 +30,7 @@ func NewSection(pos position, name, ws string, comment *Comment) *Section {
 	}
 }
 
-// Stringer
+// Section Stringer.
 func (s Section) String() string {
 	comment := ""
 	if s.comment != nil {
@@ -40,24 +40,26 @@ func (s Section) String() string {
 	return fmt.Sprintf("[%s]%s%s", s.name, s.ws, comment)
 }
 
-// Get raw name
+// Get raw name.
 func (s *Section) RawName() string {
 	return s.name
 }
 
-// Get name
-// Pasess name through file's SectionNameFunc
+// Get name.
+//
+// Pasess name through File's SectionNameFunc.
 func (s *Section) Name() string {
 	return s.file.SectionNameFunc(s.name)
 }
 
-// Retrieve defined keys
+// Retrieve keys defined in Section.
 func (s *Section) RawKeys() []string {
 	return s.keys
 }
 
-// Retrieve defined keys
-// Keys are passed through file's KeyManipFunc
+// Retrieve keys defined in Section.
+//
+// Keys are passed through File's KeyManipFunc.
 func (s *Section) Keys() []string {
 	keys := make([]string, len(s.keys))
 	for i, k := range s.keys {
@@ -67,7 +69,7 @@ func (s *Section) Keys() []string {
 	return keys
 }
 
-// determine insert location, which is the first blank line after a non-blank
+// Determine insert location, which is the first blank line after a non-blank.
 func (s *Section) getInsertLocation(idx int) int {
 	for i := idx; i >= 0; i-- {
 		if s.file.lines[i].item != nil {
@@ -79,7 +81,7 @@ func (s *Section) getInsertLocation(idx int) int {
 }
 
 // Returns the KeyValuePair and its line position, or nil and the position the
-// key should be inserted
+// key should be inserted at.
 func (s *Section) getKey(key string) (*KeyValuePair, int) {
 	// loop over lines and find the key
 	lastSectionName := ""
@@ -107,7 +109,7 @@ func (s *Section) getKey(key string) (*KeyValuePair, int) {
 	return nil, s.getInsertLocation(len(s.file.lines) - 1)
 }
 
-// Retrieve the raw value for a key
+// Retrieve the value for a key.
 func (s *Section) GetRaw(key string) string {
 	k, _ := s.getKey(key)
 	if k != nil {
@@ -117,18 +119,19 @@ func (s *Section) GetRaw(key string) string {
 	return ""
 }
 
-// Retrieve the value for a key
-// The returned value is passed through ValueManipFunc
+// Retrieve the value for a key.
+//
+// The value is passed through ValueManipFunc.
 func (s *Section) Get(key string) string {
 	return s.file.ValueManipFunc(s.GetRaw(key))
 }
 
-// Set raw key with raw value
-// If key already present, then it is overwritten
-// If key doesn't exist, then it is added to the end of the section
+// Set key with value.
+//
+// If key already present, then it's value is overwritten. If key doesn't
+// exist, then it is added to the end of the Section.
 func (s *Section) SetKeyValueRaw(key, value string) {
-	//fmt.Printf(">>>>>>>>>>>>>>> line count: %d SetKeyValueRaw: %s.%s//%s\n", len(s.file.lines), s.Name(), key, value)
-	//fmt.Printf(">>> file: '%s'\n\n\n", s.file)
+	// get position
 	k, pos := s.getKey(key)
 
 	// key is present, set value
@@ -136,8 +139,6 @@ func (s *Section) SetKeyValueRaw(key, value string) {
 		k.value = value
 		return
 	}
-
-	//fmt.Printf(">>>>>>>>>>> pos: %d\n", pos)
 
 	// key doesn't exist, create it...
 
@@ -182,15 +183,17 @@ func (s *Section) SetKeyValueRaw(key, value string) {
 	s.keys = append(s.keys, k.key)
 }
 
-// Set key with value
-// If key already present, then it is overwritten
-// If key doesn't exist, then it is added to the end of the section
-// Passes key through KeyManipFunc and value through ValueManipFunc
+// Set key with value.
+//
+// If key already present, then it's value is overwritten. If key doesn't
+// exist, then it is added to the end of the Section.
+//
+// Passes key through KeyManipFunc and value through ValueManipFunc.
 func (s *Section) SetKey(key, value string) {
 	s.SetKeyValueRaw(s.file.KeyManipFunc(key), s.file.ValueManipFunc(value))
 }
 
-// Remove key from section
+// Remove key from Section.
 func (s *Section) RemoveKey(key string) {
 	k, pos := s.getKey(key)
 	if k != nil {

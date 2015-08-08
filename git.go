@@ -8,7 +8,9 @@ import (
 	"github.com/knq/ini/parser"
 )
 
-// Gitconfig style name manipulation allowing for subsections
+// Gitconfig style name manipulation allowing for subsections.
+//
+// Use this as the File.SectionManipFunc.
 func GitSectionManipFunc(name string) string {
 	n, sub := parser.NameSplitFunc(name)
 
@@ -29,8 +31,11 @@ func GitSectionManipFunc(name string) string {
 	return fmt.Sprintf("%s%s", n, s)
 }
 
-// Gitconfig style section name formatting
-// Effectively inverse of GitSectionManipFunc
+// Gitconfig style section name formatting.
+//
+// Effectively inverse of GitSectionManipFunc.
+//
+// Use this as the File.SectionNameFunc.
 func GitSectionNameFunc(name string) string {
 	// remove " from string
 	n := strings.Replace(strings.TrimSpace(name), "\"", "", -1)
