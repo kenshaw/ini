@@ -105,7 +105,7 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 		// check section is present
 		s := f.GetSection(name)
 		if s == nil {
-			t.Errorf("Section '%s' should be present in file", name)
+			t.Errorf("Section '%s' should be present", name)
 		}
 
 		// make sure section name is same
@@ -425,5 +425,64 @@ func TestRemoveKey(t *testing.T) {
 	d4 := "[sect1]\n\n[sect2]\n"
 	if d4 != f.String() {
 		t.Error("RemoveKey should correctly remove a key")
+	}
+}
+
+// Test git style names (ie, subsections)
+func TestGitStyleNames(t *testing.T) {
+	d0 := "  [  sect0   \"sub0\"  ] ;comment \n  k0 = v0  \n"
+	f, err := LoadString(d0)
+	if err != nil {
+		t.Error("could not load string")
+	}
+
+	// force Gitconfig style names
+	f.SectionManipFunc = GitSectionManipFunc
+	f.SectionNameFunc = GitSectionNameFunc
+
+	enam := []string{"", "sect0.sub0"}
+	names := f.SectionNames()
+	for i, n := range enam {
+		if n != names[i] {
+			t.Errorf("section name %d should be '%s', got: '%s'", i, n, names[i])
+		}
+	}
+
+	s := f.GetSection("sect0.nonexistent")
+	if s != nil {
+		t.Error("section sect0.nonexistent should not be present")
+	}
+
+	sect0 := f.GetSection("sect0.sub0")
+	if sect0 == nil {
+		t.Fatal("section sect0.sub0 should be present")
+	}
+
+	k0 := f.GetKey("sect0.sub0.k0")
+	if k0 != "v0" {
+		t.Error("sect0.sub0.k0 should be v0")
+	}
+
+	f.SetKey("sect0.sub0.k0", "v1")
+	d1 := "  [  sect0   \"sub0\"  ] ;comment \n  k0 = v1\n"
+	if d1 != f.String() {
+		t.Error("setting key using GitSectionManipFunc should preserve location, spacing, and comments")
+	}
+
+	f.RenameSection("sect0.sub0", "sect1.sub1")
+	d2 := "  [sect1 \"sub1\"] ;comment \n  k0 = v1\n"
+	if d2 != f.String() {
+		t.Error("after RenameSection using GitSectionManipFunc, location, spacing and comments when using should be preserved")
+	}
+
+	f.SetKey("sect2.sub2.k2", "v2")
+	d3 := "  [sect1 \"sub1\"] ;comment \n  k0 = v1\n[sect2 \"sub2\"]\n\tk2=v2\n"
+	if d3 != f.String() {
+		t.Error("setting key using GitSectionManipFunc should correctly add a section, key")
+	}
+
+	v2 := f.GetKey("sect2.sub2.k2")
+	if v2 != "v2" {
+		t.Error("sect2.sub2.k2 value should be v2")
 	}
 }

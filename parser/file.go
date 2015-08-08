@@ -7,9 +7,33 @@ import (
 
 // File
 type File struct {
-	lines []*Line // parsed content
+	// lines in file
+	lines []*Line
 
-	sections []*Section // computed sections
+	// sections in file
+	sections []*Section
+
+	// Manipulation function used on section name for AddSection, RenameSection
+	SectionManipFunc func(string) string
+
+	// Function used to normalize section name
+	SectionNameFunc func(string) string
+
+	// Comparison function used to find section in File
+	// Set this to override default comparison behavior
+	SectionCompFunc func(string, string) bool
+
+	// Manipulation function used on key in File
+	KeyManipFunc func(string) string
+
+	// Comparison function used to find key in File
+	KeyCompFunc func(string, string) bool
+
+	// Manipulation function used when setting value in File
+	ValueManipFunc func(string) string
+
+	// Function is used to split a key name (such as section.key)
+	NameSplitFunc func(string) (string, string)
 }
 
 // Create a new ini file from passed lines
@@ -18,6 +42,15 @@ func NewFile(lines []*Line) *File {
 	ret := &File{
 		lines:    lines,
 		sections: make([]*Section, 0),
+
+		// copy manipulation functions
+		SectionManipFunc: SectionManipFunc,
+		SectionNameFunc:  SectionNameFunc,
+		SectionCompFunc:  nil,
+		KeyManipFunc:     KeyManipFunc,
+		KeyCompFunc:      KeyCompFunc,
+		ValueManipFunc:   ValueManipFunc,
+		NameSplitFunc:    NameSplitFunc,
 	}
 
 	// create default section
@@ -85,7 +118,7 @@ func (f *File) RawSectionNames() []string {
 }
 
 // Get section names in file
-// Section names are passed through KeyManipFunc
+// Section names are passed through SectionNameFunc
 func (f *File) SectionNames() []string {
 	names := make([]string, len(f.sections))
 	for i, s := range f.sections {
@@ -94,18 +127,15 @@ func (f *File) SectionNames() []string {
 	return names
 }
 
-// Add section to file
-func (f *File) AddSection(name string) *Section {
-	// create key
-	k := KeyManipFunc(name)
-
+// Add section with raw name
+func (f *File) AddSectionRaw(name string) *Section {
 	// if its "", then avoid retrieving ...
-	if k == "" {
+	if f.sectionNameComp(name, "") {
 		return f.GetSection("")
 	}
 
 	// create section
-	s := NewSection(position{}, k, "", nil)
+	s := NewSection(position{}, name, "", nil)
 	s.file = f
 
 	// add section data to file
@@ -130,16 +160,34 @@ func (f *File) AddSection(name string) *Section {
 	return s
 }
 
+// Add section to file and retrieve
+// Section name is passed through file's SectionManipFunc
+func (f *File) AddSection(name string) *Section {
+	return f.AddSectionRaw(f.SectionManipFunc(name))
+}
+
+// compares two section names
+// uses f.SectionCompFunc if present, otherwise
+func (f *File) sectionNameComp(a, b string) bool {
+	if f.SectionCompFunc != nil {
+		return f.SectionCompFunc(a, b)
+	}
+
+	return f.SectionNameFunc(a) == f.SectionNameFunc(b)
+}
+
 // Get a section and its starting line number
 func (f *File) _getSection(name string) (*Section, int) {
+	n := f.SectionManipFunc(name)
+
 	// blank section isn't actually defined ...
-	if name == "" {
+	if f.sectionNameComp(n, "") {
 		return f.sections[0], 0
 	}
 
 	// loop through lines and find section
 	for idx, line := range f.lines {
-		if s, ok := line.item.(*Section); ok && KeyCompFunc(name, s.name) {
+		if s, ok := line.item.(*Section); ok && f.sectionNameComp(n, s.name) {
 			return s, idx
 		}
 	}
@@ -153,10 +201,16 @@ func (f *File) GetSection(name string) *Section {
 	return s
 }
 
+// Rename section in file (RAW)
+func (f *File) RenameSectionRaw(name, value string) {
+	s := f.GetSection(name)
+	s.name = value
+}
+
 // Rename section in file
-func (f *File) RenameSection(key, value string) {
-	s := f.GetSection(key)
-	s.name = KeyManipFunc(value)
+// value will be passed through the file's SectionManipFunc
+func (f *File) RenameSection(name, value string) {
+	f.RenameSectionRaw(name, f.SectionManipFunc(value))
 }
 
 // Remove section and all related lines from file
@@ -203,12 +257,12 @@ func (f *File) RemoveSection(name string) {
 // If no section is specified, then the empty (first) section is used
 // Uses NameSplitFunc to split the key
 func (f *File) SetKey(key, value string) {
-	s, k := NameSplitFunc(key)
+	name, k := f.NameSplitFunc(key)
 
 	// get the section
-	section := f.GetSection(s)
+	section := f.GetSection(name)
 	if section == nil {
-		section = f.AddSection(s)
+		section = f.AddSection(name)
 	}
 
 	section.SetKey(k, value)
@@ -216,12 +270,12 @@ func (f *File) SetKey(key, value string) {
 
 // Retrieve key from file with name in form of section.key
 // If no section is specified, then the empty (first) section is used
-// Uses NameSplitFunc to split the key
+// Uses file's NameSplitFunc to split the key
 func (f *File) GetKey(key string) string {
-	s, k := NameSplitFunc(key)
+	name, k := f.NameSplitFunc(key)
 
 	// get the section
-	section := f.GetSection(s)
+	section := f.GetSection(name)
 	if section == nil {
 		return ""
 	}
@@ -231,12 +285,12 @@ func (f *File) GetKey(key string) string {
 
 // Remove key from file with name in form of section.key
 // If no section is specified, then the empty (first) section is used
-// Uses NameSplitFunc to split the key
+// Uses file's NameSplitFunc to split the key
 func (f *File) RemoveKey(key string) {
-	s, k := NameSplitFunc(key)
+	name, k := f.NameSplitFunc(key)
 
 	// get the section
-	section := f.GetSection(s)
+	section := f.GetSection(name)
 	if section == nil {
 		return
 	}

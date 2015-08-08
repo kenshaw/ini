@@ -26,35 +26,46 @@ var (
 	lastText string
 )
 
+// Section Name Manipulation Function
+func SectionManipFunc(name string) string {
+	return strings.TrimSpace(strings.ToLower(name))
+}
+
+// Section Name Format Function
+func SectionNameFunc(name string) string {
+	return strings.TrimSpace(strings.ToLower(name))
+}
+
 // Key Manipulation Function
-var KeyManipFunc = func(key string) string {
+// Takes a key name and returns the value that should used
+// Default does TrimSpace(ToLower(key))
+func KeyManipFunc(key string) string {
 	return strings.TrimSpace(strings.ToLower(key))
 }
 
 // Key Comparison Function
-var KeyCompFunc = func(a, b string) bool {
+// Passes keys a, b through KeyManipFunc and returns string equality
+func KeyCompFunc(a, b string) bool {
 	return KeyManipFunc(a) == KeyManipFunc(b)
 }
 
 // Section Name Split Function
 // Splits names based on DefaultNameKeySeparator
-var NameSplitFunc = func(name string) (string, string) {
-	var section, key string
+func NameSplitFunc(name string) (string, string) {
+	idx := strings.LastIndex(name, DefaultNameKeySeparator)
 
-	s := strings.SplitN(name, DefaultNameKeySeparator, 2)
-	if len(s) == 1 {
-		section = ""
-		key = s[0]
-	} else {
-		section = s[0]
-		key = s[1]
+	// no section name
+	if idx < 0 {
+		return "", name
 	}
 
-	return section, key
+	return name[:idx], name[idx+1:]
 }
 
 // Value Manipulation Function
-var ValueManipFunc = strings.TrimSpace
+func ValueManipFunc(value string) string {
+	return strings.TrimSpace(value)
+}
 
 // Retrieve a formatted last error
 func LastError() error {

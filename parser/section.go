@@ -46,8 +46,9 @@ func (s *Section) RawName() string {
 }
 
 // Get name
+// Pasess name through file's SectionNameFunc
 func (s *Section) Name() string {
-	return KeyManipFunc(s.name)
+	return s.file.SectionNameFunc(s.name)
 }
 
 // Retrieve defined keys
@@ -56,11 +57,11 @@ func (s *Section) RawKeys() []string {
 }
 
 // Retrieve defined keys
-// Keys are passed through KeyManipFunc
+// Keys are passed through file's KeyManipFunc
 func (s *Section) Keys() []string {
 	keys := make([]string, len(s.keys))
 	for i, k := range s.keys {
-		keys[i] = KeyManipFunc(k)
+		keys[i] = s.file.KeyManipFunc(k)
 	}
 
 	return keys
@@ -85,8 +86,8 @@ func (s *Section) getKey(key string) (*KeyValuePair, int) {
 	for lastIdx, l := range s.file.lines {
 		switch l.item.(type) {
 		case *Section:
-			// if we are entering a new section, and not found, break
 			if lastSectionName == s.name {
+				// must be entering a new section; so not found, return
 				return nil, s.getInsertLocation(lastIdx - 1)
 			}
 
@@ -96,7 +97,7 @@ func (s *Section) getKey(key string) (*KeyValuePair, int) {
 		case *KeyValuePair:
 			kvp, _ := l.item.(*KeyValuePair)
 			//fmt.Printf(">>> compare: %s//%s :: %s//%s\n", lastSectionName, s.name, kvp.key, key)
-			if lastSectionName == s.name && KeyCompFunc(kvp.key, key) {
+			if lastSectionName == s.name && s.file.KeyCompFunc(kvp.key, key) {
 				return kvp, lastIdx
 			}
 		}
@@ -119,7 +120,7 @@ func (s *Section) GetRaw(key string) string {
 // Retrieve the value for a key
 // The returned value is passed through ValueManipFunc
 func (s *Section) Get(key string) string {
-	return ValueManipFunc(s.GetRaw(key))
+	return s.file.ValueManipFunc(s.GetRaw(key))
 }
 
 // Set raw key with raw value
@@ -186,7 +187,7 @@ func (s *Section) SetKeyValueRaw(key, value string) {
 // If key doesn't exist, then it is added to the end of the section
 // Passes key through KeyManipFunc and value through ValueManipFunc
 func (s *Section) SetKey(key, value string) {
-	s.SetKeyValueRaw(KeyManipFunc(key), ValueManipFunc(value))
+	s.SetKeyValueRaw(s.file.KeyManipFunc(key), s.file.ValueManipFunc(value))
 }
 
 // Remove key from section
@@ -198,7 +199,7 @@ func (s *Section) RemoveKey(key string) {
 		// find place in s.keys
 		idx := 0
 		for ; idx < len(s.keys); idx++ {
-			if KeyCompFunc(key, s.keys[idx]) {
+			if s.file.KeyCompFunc(key, s.keys[idx]) {
 				break
 			}
 		}
