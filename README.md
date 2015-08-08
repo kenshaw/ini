@@ -8,13 +8,21 @@ also in this repository. The parser package was implemented by generating a
 [Pigeon](https://github.com/PuerkitoBio/pigeon/) parser from a
 [PEG grammar](https://en.wikipedia.org/wiki/Parsing_expression_grammar).
 
+This package can (with the correct configuration), correctly read [git
+configuration](http://git-scm.com/docs/git-config) files, very simple
+[TOML](https://github.com/toml-lang/toml) files, and [Java
+Properties](https://en.wikipedia.org/wiki/.properties) files. 
+
 ## Why Another ini File Package? ##
 
-In writing a semi-related package, I evaluated a number of existing ini
-packages. The other packages did not have all features that were needed,
-and did not work correctly in many cases. As such, it was necessary to write a
-package that worked badly formatted ini files, and that provided a more robust
-option for parsing.
+Prior to writing this package, a number of existing Go ini packages/parsers
+were investigated. The available packages at the time did not have a complete
+feature set needed, did not work well with badly formatted files, or their
+parsers were not easily fixable.
+
+As such, it was deemed necessary to write a package that could work with a
+variety of badly formatted ini files, in idiomatic Go, and provide a simple
+interface to reading/writing/manipulating ini files.
 
 ## Installation ##
 
@@ -26,28 +34,54 @@ Install the package via the following:
 
 The ini package can be used similarly to the following:
 
-    package main
+```go
+package main
 
-    import (
-        "log"
-        "github.com/knq/ini"
-    )
+import (
+	"fmt"
+	"log"
 
-    var (
-        data = `
-        firstkey = one
+	"github.com/knq/ini"
+)
 
-        [some section]
-        key = blah ; comment
+var (
+	data = `
+	firstkey = one
 
-        [another section]
-        key = blah`
-    )
+	[some section]
+	key = blah ; comment
 
-    func main() {
-        f := ini.LoadString(data)
-        s := f.Get("some section")
-        log.Printf(">> %s\n", s.Get("key"))
-        s.Set("key2", "another value")
-        f.Write("out.ini")
-    }
+	[another section]
+	key = blah`
+
+	gitconfig = `
+	[difftool "gdmp"]
+	cmd = ~/gdmp/x "$LOCAL" "$REMOTE"
+	`
+)
+
+func main() {
+	f, err := ini.LoadString(data)
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+
+	s := f.GetSection("some section")
+
+	fmt.Printf("some section.key: %s\n", s.Get("key"))
+	s.SetKey("key2", "another value")
+	f.Write("out.ini")
+
+	// create a gitconfig parser
+	g, err := ini.LoadString(gitconfig)
+	if err != nil {
+		log.Fatalf("error: %s\n", err)
+	}
+
+	// setup gitconfig name/key manipulation functions
+	g.SectionManipFunc = ini.GitSectionManipFunc
+	g.SectionNameFunc = ini.GitSectionNameFunc
+
+	fmt.Printf("difftool.gdmp.cmd: %s\n", g.GetKey("difftool.gdmp.cmd"))
+}
+```
