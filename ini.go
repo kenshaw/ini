@@ -1,7 +1,7 @@
 /*
 	Simple package to read/write/manipulate ini files.
 
-	Mainly a frontend to github.com/knq/ini/parser.
+	Mainly a frontend to http://github.com/knq/ini/parser
 */
 package ini
 
