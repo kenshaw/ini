@@ -12,6 +12,11 @@ import (
 func GitSectionManipFunc(name string) string {
 	n, sub := parser.NameSplitFunc(name)
 
+	if n == "" {
+		n = sub
+		sub = ""
+	}
+
 	// clean up name
 	n = strings.TrimSpace(strings.ToLower(n))
 

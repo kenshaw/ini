@@ -1,9 +1,6 @@
 package ini
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 var (
 	complexString = `   ;comment1 
@@ -338,7 +335,6 @@ func TestSetKeyAdvanced(t *testing.T) {
 	f.SetKey("k7", "val7")
 	d3 := "k0=val0\nk1=val1\nk7=val7\n\n\n[sect1]\nk1=v1\n\nk2=v2\nk3=v3\nk4=val4\n\n\n[sect5]\nk6=val6\n"
 	if d3 != f.String() {
-		fmt.Printf(">>>>>>>>>>>>> '%s'\n\n", f)
 		t.Error("SetKey should correctly insert a key after last blank line of default section")
 	}
 }
@@ -481,14 +477,60 @@ func TestGitStyleNames(t *testing.T) {
 		t.Error("setting key using GitSectionManipFunc should correctly add a section, key")
 	}
 
+	sect2 := f.GetSection("sect2.sub2")
+	if sect2 == nil || sect2.Name() != "sect2.sub2" {
+		t.Error("sect2.sub2 should be defined and Name should be sect2.sub2")
+	}
+
 	v2 := f.GetKey("sect2.sub2.k2")
 	if v2 != "v2" {
 		t.Error("sect2.sub2.k2 value should be v2")
 	}
+
+	f.SetKey("sect3.k3", "v3")
+	d4 := "  [sect1 \"sub1\"] ;comment \n  k0 = v1\n[sect2 \"sub2\"]\n\tk2=v2\n[sect3]\n\tk3=v3\n"
+	if d4 != f.String() {
+		t.Error("setting key using GitSectionManipFunc should correctly add a section, key")
+	}
+
+	v3 := f.GetKey("sect3.k3")
+	if v3 != "v3" {
+		t.Error("sect3.k3 should be v3")
+	}
+
+	f.SetKey("k4", "v4")
+	d5 := "k4=v4\n  [sect1 \"sub1\"] ;comment \n  k0 = v1\n[sect2 \"sub2\"]\n\tk2=v2\n[sect3]\n\tk3=v3\n"
+	if d5 != f.String() {
+		t.Error("setting key using GitSectionManipFunc should correctly add key to default section")
+	}
+
+	v4 := f.GetKey("k4")
+	if v4 != "v4" {
+		t.Error("k4 should be v4")
+	}
+
+	f.SetKey("sect3.sect3.k4", "value4")
+	d6 := "k4=v4\n  [sect1 \"sub1\"] ;comment \n  k0 = v1\n[sect2 \"sub2\"]\n\tk2=v2\n[sect3]\n\tk3=v3\n[sect3 \"sect3\"]\n\tk4=value4\n"
+	if d6 != f.String() {
+		t.Error("setting key using GitSectionManipFunc should correctly add section and key")
+	}
+
+	enam = []string{"", "sect1.sub1", "sect2.sub2", "sect3", "sect3.sect3"}
+	names = f.SectionNames()
+	for i, n := range enam {
+		if n != names[i] {
+			t.Errorf("section name %d should be '%s', got: '%s'", i, n, names[i])
+		}
+	}
+
+	f.RemoveSection("sect3.sect3")
+	if d5 != f.String() {
+		t.Error("removing section sect3.sect3 should result in previous version of file")
+	}
 }
 
 func TestStringValues(t *testing.T) {
-	d0 := "k0=\"v0;#notacomment\"\n"
+	d0 := "k0=\"v0;#notacomment\"\nk1=\"line0\nline2\"\n"
 	f, err := LoadString(d0)
 	if err != nil {
 		t.Error("could not load string")
@@ -497,5 +539,10 @@ func TestStringValues(t *testing.T) {
 	v0 := f.GetKey("k0")
 	if v0 != "\"v0;#notacomment\"" {
 		t.Errorf("v0 should be \"v0;#notacomment\"")
+	}
+
+	v1 := f.GetKey("k1")
+	if v1 != "\"line0\nline2\"" {
+		t.Error("k1 should span multiple lines")
 	}
 }

@@ -51,6 +51,7 @@ func KeyCompFunc(a, b string) bool {
 
 // Section Name Split Function
 // Splits names based on DefaultNameKeySeparator
+// Returns section, key name
 func NameSplitFunc(name string) (string, string) {
 	idx := strings.LastIndex(name, DefaultNameKeySeparator)
 
