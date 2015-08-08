@@ -1,7 +1,7 @@
 /*
 	Pigeon-based parser that implements a ini file parser.
 
-	Please see godoc.org/github.com/kni/ini for the frontend package.
+	Please see http://godoc.org/github.com/knq/ini for the frontend package.
 */
 package parser
 
