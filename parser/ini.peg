@@ -7,7 +7,7 @@ File <- lines:Line* EOF {
 
     //fmt.Printf("\n\n\n>> File: %s // '%s'", c.pos, string(c.text))
 
-    // convert iface to []*Line 
+    // convert iface to []*Line
     lsSlice := toIfaceSlice(lines)
     ls := make([]*Line, len(lsSlice))
     for i, l := range lsSlice {
@@ -76,11 +76,43 @@ Key <- [^#;=\r\n[\]]+ {
     return string(c.text), nil
 }
 
-Value <- [^;#\r\n]* {
+Value <- QuotedValue / SimpleValue {
     lastPosition = c.pos
     lastText = string(c.text)
 
     //fmt.Printf(">> Value: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
+}
+
+QuotedValue <- '"' Char* '"' {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> QuotedValue: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
+}
+
+Char <- !('"' / '\\') . / '\\' ([\\/bfnrt"] / 'u' HexDigit HexDigit HexDigit HexDigit) { // " // ignore
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> Char: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
+}
+
+HexDigit <- [0-9a-f]i {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> HexDigit: %s // '%s'\n", c.pos, string(c.text))
+    return string(c.text), nil
+}
+
+SimpleValue <- [^;#\r\n]* {
+    lastPosition = c.pos
+    lastText = string(c.text)
+
+    //fmt.Printf(">> SimpleValue: %s // '%s'\n", c.pos, string(c.text))
     return string(c.text), nil
 }
 

@@ -486,3 +486,16 @@ func TestGitStyleNames(t *testing.T) {
 		t.Error("sect2.sub2.k2 value should be v2")
 	}
 }
+
+func TestStringValues(t *testing.T) {
+	d0 := "k0=\"v0;#notacomment\"\n"
+	f, err := LoadString(d0)
+	if err != nil {
+		t.Error("could not load string")
+	}
+
+	v0 := f.GetKey("k0")
+	if v0 != "\"v0;#notacomment\"" {
+		t.Errorf("v0 should be \"v0;#notacomment\"")
+	}
+}
