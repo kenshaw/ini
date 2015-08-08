@@ -32,6 +32,9 @@ Install the package via the following:
 
 ## Usage ##
 
+Please see [the GoDoc API page](http://godoc.org/github.com/knq/ini) for a full
+API listing.
+
 The ini package can be used similarly to the following:
 
 ```go
