@@ -1,4 +1,8 @@
-// ini file parser
+/*
+	Pigeon-based parser that implements a ini file parser.
+
+	Please see godoc.org/github.com/kni/ini for the frontend package.
+*/
 package parser
 
 //go:generate ./generate.sh

@@ -17,7 +17,7 @@ type File struct {
 	// RenameSection.
 	SectionManipFunc func(string) string
 
-	// Function used to normalize section name.
+	// Function used to normalize and format section name for presentation.
 	SectionNameFunc func(string) string
 
 	// Comparison function used to find section in File. Set this to override

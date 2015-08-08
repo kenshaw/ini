@@ -1,6 +1,8 @@
-// Simple package to read/write/manipulate ini files
-//
-// Mainly a frontend to github.com/knq/ini/parser
+/*
+	Simple package to read/write/manipulate ini files.
+
+	Mainly a frontend to github.com/knq/ini/parser.
+*/
 package ini
 
 import (
@@ -34,7 +36,7 @@ func NewFile() *File {
 	}
 }
 
-// Save file (write to filename).
+// Save file data to filename.
 func (f *File) Save() error {
 	if f.Filename == "" {
 		return errors.New("no filename supplied")
