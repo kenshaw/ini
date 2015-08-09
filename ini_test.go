@@ -3,6 +3,7 @@ package ini
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -38,7 +39,13 @@ test=bar
 func TestParseBad(t *testing.T) {
 	_, err := LoadString("bad")
 	if err == nil {
-		t.Error("bad string should not have error")
+		t.Error("bad string should error")
+	}
+
+	r := strings.NewReader("bad")
+	_, err = Load(r)
+	if err == nil {
+		t.Error("bad string should error")
 	}
 }
 
@@ -604,6 +611,24 @@ func TestBadWrite(t *testing.T) {
 	if err == nil {
 		t.Error("file should not be writable")
 	}
+
+	err = f.Save()
+	if err == nil {
+		t.Error("file should not be writable")
+	}
+}
+
+func TestCustomSectionCompFunc(t *testing.T) {
+	f := NewFile()
+	f.SectionCompFunc = func(a, b string) bool {
+		return true
+	}
+
+	f.SetKey("k1", "v1")
+	v1 := f.GetKey("sect0.k1")
+	if v1 != "v1" {
+		t.Error("using custom section comp func, section names should be ignored and v1 should be v1")
+	}
 }
 
 func TestMaps(t *testing.T) {
@@ -704,5 +729,16 @@ func TestMaps(t *testing.T) {
 		if val != v {
 			t.Errorf("expected %s to be %s, got: '%s'", key, val, v)
 		}
+	}
+}
+
+func TestLoadFileSave(t *testing.T) {
+	f, err := LoadFile("nonexistent")
+	if err != nil {
+		t.Error("there should not be an error loading nonexistent file")
+	}
+
+	if f.Filename != "nonexistent" {
+		t.Error("filename should be nonexistent")
 	}
 }
