@@ -105,15 +105,6 @@ func LastError() error {
 	return errors.New(fmt.Sprintf("error on line %d:%d near '%s'", lastPosition.line, lastPosition.col, lastText))
 }
 
-// Helper function taken from pigeon source / examples
-func toIfaceSlice(v interface{}) []interface{} {
-	if v == nil {
-		return nil
-	}
-
-	return v.([]interface{})
-}
-
 // Common interface to Comment, Section, and KeyValuePair.
 type Item interface {
 	String() string

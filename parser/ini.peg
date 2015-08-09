@@ -1,5 +1,18 @@
 // peg based parser for ini files
-{ package parser }
+{
+
+package parser
+
+// Helper function taken from pigeon source / examples
+func toIfaceSlice(v interface{}) []interface{} {
+    if v == nil {
+        return nil
+    }
+
+    return v.([]interface{})
+}
+
+}
 
 File <- lines:Line* EOF {
     lastPosition = c.pos

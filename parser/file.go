@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 )
 
@@ -208,6 +209,61 @@ func (f *File) _getSection(name string) (*Section, int) {
 func (f *File) GetSection(name string) *Section {
 	s, _ := f._getSection(name)
 	return s
+}
+
+// Set section and key values from map.
+func (f *File) SetMap(values map[string]map[string]string) {
+	for name, keys := range values {
+		section := f.GetSection(name)
+		if section == nil {
+			section = f.AddSection(name)
+		}
+
+		for k, v := range keys {
+			section.SetKey(k, v)
+		}
+	}
+}
+
+// Get sections and key values as map.
+func (f *File) GetMap() map[string]map[string]string {
+	ret := make(map[string]map[string]string)
+
+	for _, section := range f.sections {
+		s := make(map[string]string)
+		for _, key := range section.keys {
+			s[f.KeyManipFunc(key)] = f.ValueManipFunc(section.GetRaw(key))
+		}
+
+		ret[section.Name()] = s
+	}
+
+	return ret
+}
+
+// Set section and key values from flat map.
+func (f *File) SetMapFlat(values map[string]string) {
+	for key, value := range values {
+		f.SetKey(key, value)
+	}
+}
+
+// Get keys and values as flat map.
+func (f *File) GetMapFlat() map[string]string {
+	ret := make(map[string]string)
+
+	for _, section := range f.sections {
+		name := section.Name()
+		if section.name != "" {
+			name = fmt.Sprintf("%s%s", name, DefaultNameKeySeparator)
+		}
+
+		for _, key := range section.keys {
+			ret[fmt.Sprintf("%s%s", name, key)] = f.ValueManipFunc(section.GetRaw(key))
+		}
+	}
+
+	return ret
 }
 
 // Rename Section in File.

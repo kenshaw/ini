@@ -55,5 +55,5 @@ func GitSectionNameFunc(name string) string {
 	n := strings.Replace(strings.TrimSpace(name), "\"", "", -1)
 
 	// replace any spacing with .
-	return regexp.MustCompile("[ \t]+").ReplaceAllString(n, ".")
+	return regexp.MustCompile("[ \t]+").ReplaceAllString(n, parser.DefaultNameKeySeparator)
 }

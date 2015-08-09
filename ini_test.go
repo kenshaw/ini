@@ -1,6 +1,10 @@
 package ini
 
-import "testing"
+import (
+	"io/ioutil"
+	"os"
+	"testing"
+)
 
 var (
 	complexString = `   ;comment1 
@@ -120,6 +124,45 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 	}
 }
 
+func TestRawSectionKeys(t *testing.T) {
+	f, err := LoadString(complexString)
+	if err != nil {
+		t.Error("could not load complexString")
+	}
+
+	rawkeys := map[string][]string{
+		"":         {"defkey1", "defkey2", "defkey3 "},
+		"section1": {"key1 ", "key2 "},
+		"section2": {},
+		"section3": {"s3key1 ", "s3key2 "},
+		"毚饯襃ブみょ":   {"䥵妦飌ぞ盯 "},
+		"test2":    {"test"},
+		"test3":    {"test"},
+	}
+
+	// check sections and key combinations
+	for name, keys := range rawkeys {
+		// check section is present
+		s := f.GetSection(name)
+		if s == nil {
+			t.Errorf("Section '%s' should be present", name)
+		}
+
+		// make sure section name is same
+		if name != s.Name() {
+			t.Errorf("Section '%s' should have same name as Section.Name()", name)
+		}
+
+		// compare section keys
+		kys := s.RawKeys()
+		for i, k := range keys {
+			if k != kys[i] {
+				t.Errorf("Section '%s' should have key '%s' (%d), got: '%s'", name, k, i, kys[i])
+			}
+		}
+	}
+}
+
 func TestGetKey(t *testing.T) {
 	f, err := LoadString(complexString)
 	if err != nil {
@@ -140,8 +183,9 @@ func TestGetKey(t *testing.T) {
 
 		"毚饯襃ブみょ.䥵妦飌ぞ盯": "覎びゅフォ駧橜 槞㨣",
 
-		"test2.test": "foo",
-		"test3.test": "bar",
+		"test2.test":              "foo",
+		"test3.test":              "bar",
+		"nonexistent.nonexistent": "",
 	}
 
 	// check each key value as per map
@@ -422,6 +466,12 @@ func TestRemoveKey(t *testing.T) {
 	if d4 != f.String() {
 		t.Error("RemoveKey should correctly remove a key")
 	}
+
+	f.RemoveKey("sect1.k2")
+	f.RemoveKey("nonexistent.nonexistent")
+	if d4 != f.String() {
+		t.Error("RemoveKey called on nonexistent keys should not alter the file")
+	}
 }
 
 // Test git style names (ie, subsections)
@@ -544,5 +594,115 @@ func TestStringValues(t *testing.T) {
 	v1 := f.GetKey("k1")
 	if v1 != "\"line0\nline2\"" {
 		t.Error("k1 should span multiple lines")
+	}
+}
+
+func TestBadWrite(t *testing.T) {
+	f := NewFile()
+	f.SetKey("k1", "v1")
+	err := f.File.Write("")
+	if err == nil {
+		t.Error("file should not be writable")
+	}
+}
+
+func TestMaps(t *testing.T) {
+	tmpfile, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal("could not create temporary file")
+	}
+
+	tmpfile.Close()
+
+	defer func() {
+		err := os.Remove(tmpfile.Name())
+		if err != nil {
+			t.Fatalf("could not remove temporary file %s", tmpfile.Name())
+		}
+	}()
+
+	values := map[string]map[string]string{
+		"": {
+			"k0": "v0",
+		},
+		"sect0": {
+			"k1": "v1",
+			"k2": "v2",
+		},
+		"sect0.sub1": {
+			"k3": "v3",
+		},
+	}
+
+	// create file data
+	f0 := NewFile()
+	f0.Filename = tmpfile.Name()
+	f0.SectionManipFunc = GitSectionManipFunc
+	f0.SectionNameFunc = GitSectionNameFunc
+	f0.SetMap(values)
+
+	// test map
+	map0 := f0.GetMap()
+	for name, vals := range values {
+		section := f0.GetSection(name)
+		if section == nil {
+			t.Fatalf("section %s should be present", name)
+		}
+
+		for key, val := range vals {
+			v := map0[name][key]
+			if val != v {
+				t.Errorf("section %s should have key %s with value %s, got: '%s'", name, key, val, v)
+			}
+		}
+	}
+
+	// write to disk
+	err = f0.Save()
+	if err != nil {
+		t.Fatalf("could not save tmpfile: %s", err)
+	}
+
+	// load data back
+	f1, err := LoadFile(tmpfile.Name())
+	f1.SectionManipFunc = GitSectionManipFunc
+	f1.SectionNameFunc = GitSectionNameFunc
+	if err != nil {
+		t.Fatalf("could not open tmpfile: %s", err)
+	}
+
+	expvalues := map[string]string{
+		"k0":            "v0",
+		"sect0.k1":      "v1",
+		"sect0.k2":      "v2",
+		"sect0.sub1.k3": "v3",
+	}
+
+	for key, val := range expvalues {
+		v := f1.GetKey(key)
+		if val != v {
+			t.Errorf("expected %s to be %s, got: '%s'", key, val, v)
+		}
+	}
+
+	// compare flat map
+	map1 := f1.GetMapFlat()
+	for key, val := range expvalues {
+		v, ok := map1[key]
+		if !ok || val != v {
+			t.Errorf("expected %s to be %s, got: '%s'", key, val, v)
+		}
+	}
+
+	// set map using flat values
+	f2 := NewFile()
+	f2.SectionManipFunc = GitSectionManipFunc
+	f2.SectionNameFunc = GitSectionNameFunc
+	f2.SetMapFlat(expvalues)
+	for key, val := range expvalues {
+		v := f2.GetKey(key)
+		if val != v {
+			t.Errorf("expected %s to be %s, got: '%s'", key, val, v)
+		}
 	}
 }
