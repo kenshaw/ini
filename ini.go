@@ -20,12 +20,14 @@ import (
 // File data.
 //
 // An encapsulation of parser.File.
+//
+// File can be written to disk by calling File.Save.
 type File struct {
 	*parser.File        // ini file data
 	Filename     string // filename to read/write from/to
 }
 
-// Create a new file.
+// Create a new File.
 func NewFile() *File {
 	lines := make([]*parser.Line, 0)
 	inifile := parser.NewFile(lines)
@@ -36,7 +38,10 @@ func NewFile() *File {
 	}
 }
 
-// Save file data to filename.
+// Save file data to File.Filename.
+//
+// Returns error if File.Filename name was not supplied, or if an error was
+// encountered during write. Simple wrapper around parser.File.Write.
 func (f *File) Save() error {
 	if f.Filename == "" {
 		return errors.New("no filename supplied")
@@ -62,7 +67,7 @@ func sanitizeData(r io.Reader) ([]byte, error) {
 	return data, nil
 }
 
-// Passes the filename/reader to the ini.Parser.
+// Passes the filename/reader to ini.Parser.Parse.
 func parse(name, filename string, r io.Reader) (*File, error) {
 	// sanitize data first (make sure file ends with '\n')
 	data, err := sanitizeData(r)
@@ -102,10 +107,10 @@ func LoadString(inistr string) (*File, error) {
 	return parse("<string>", "", r)
 }
 
-// Load ini from a file.
+// Load ini data from filename.
 //
-// If the file doesn't exist, then an empty File is returned. It is the
-// caller's job to then write the file to disk using Write.
+// If the filename doesn't exist, then an empty File is returned. The data can
+// then be written to disk using File.Save, or parser.File.Write.
 func LoadFile(filename string) (*File, error) {
 	// check if the file exists, return a new file if it doesn't
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
