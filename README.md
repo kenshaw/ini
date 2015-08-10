@@ -1,4 +1,4 @@
-# About ini [![Build Status](https://travis-ci.org/knq/ini.svg)](https://travis-ci.org/knq/ini) #
+# About ini [![Build Status](https://travis-ci.org/knq/ini.svg)](https://travis-ci.org/knq/ini) [![Coverage Status](https://coveralls.io/repos/knq/ini/badge.svg?branch=master)](https://coveralls.io/r/knq/ini?branch=master) #
 
 A simple [Go](http://www.golang.org/project/) package for manipulating 
 [ini files](https://en.wikipedia.org/wiki/INI_file).
