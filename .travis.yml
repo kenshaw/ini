@@ -1,8 +1,13 @@
 language: go
 
 go:
-  - 1.4
   - tip
 
+before_install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+
 script:
-  - go test -v ./...
+  - $HOME/gopath/bin/goveralls -v -service=travis-ci -package=github.com/knq/ini,github.com/knq/ini/parser ./...
+#  - go test -v ./...
