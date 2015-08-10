@@ -11,4 +11,5 @@ before_install:
 
 script:
   - go test -v -covermode=count -coverprofile=coverage.out -coverpkg=github.com/knq/ini,github.com/knq/ini/parser
+  - perl -pi -e "s'^github.com/knq/ini/parser/pigeon\.go.*''" coverage.out
   - $HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out
