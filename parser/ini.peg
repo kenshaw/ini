@@ -97,7 +97,7 @@ Value <- QuotedValue / SimpleValue {
     return string(c.text), nil
 }
 
-QuotedValue <- '"' Char* '"' {
+QuotedValue <- '"' Char* '"' _ {
     lastPosition = c.pos
     lastText = string(c.text)
 
