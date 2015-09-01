@@ -8,7 +8,6 @@ package parser
 //go:generate ./generate.sh
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -102,7 +101,7 @@ func ValueManipFunc(value string) string {
 
 // Retrieve the last error encountered during parsing.
 func LastError() error {
-	return errors.New(fmt.Sprintf("error on line %d:%d near '%s'", lastPosition.line, lastPosition.col, lastText))
+	return fmt.Errorf("error on line %d:%d near '%s'", lastPosition.line, lastPosition.col, lastText)
 }
 
 // Common interface to Comment, Section, and KeyValuePair.
