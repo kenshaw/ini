@@ -1,16 +1,16 @@
 language: go
-
 go:
-  - 1.4
-  - 1.5
-  - tip
-
+- 1.4
+- 1.5
+- tip
 before_install:
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/axw/gocov/gocov
-  - go get github.com/mattn/goveralls
-
+- go get golang.org/x/tools/cmd/cover
+- go get github.com/axw/gocov/gocov
+- go get github.com/mattn/goveralls
 script:
-  - go test -v -covermode=count -coverprofile=coverage.out -coverpkg=github.com/knq/ini,github.com/knq/ini/parser
-  - perl -pi -e "s'^github.com/knq/ini/parser/pigeon\.go.*\n''" coverage.out
-  - $HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out
+- go test -v -covermode=count -coverprofile=coverage.out -coverpkg=github.com/knq/ini,github.com/knq/ini/parser
+- perl -pi -e "s'^github.com/knq/ini/parser/pigeon\.go.*\n''" coverage.out
+- "$HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out"
+notifications:
+  slack:
+    secure: RBDyZfKEzyRgTAJIlwXwmKigYJTOCaVs+0PbK4QDFpLheNK4v0usOTeo8qE2XE1u+HOG4qOHstVRDxPBHGguDa/d15u+bnajJ5lYQv1l9coNCchM5TxeSTQnvvkBQ0T2UUbYaFe3Q9cgP5YFGSEVupgaRI5uUVGNK6gYxcOHsDHRvTXbGjHKd6LS5v7teJ/hS23ELaTTjJkadsJtgTdjrIL8JsyQi9WeDVXif/isGENF9xj+1UL8fPHzdeO0HDkLc4N+oHFcXDnnZaTWid+6EAbXwucsFA2Hi4dlVTUbgssGngs6oLKDeGqjBHl1IRCck89m3GgyNAWbYuC8gugLGak6C/aU0uU45WCTb8dO761wmbG8KaesEG2mLFUreCbTdztYLBeIIMfE7RBWu81A9QIeOthn89N/BzXyXY0YEwpefLzni+EX1cND4ewXSM3cAvw72ui9SSZNRatayGsOsvLGj8fAC49CgyjZcBIjxhxcKWNCfrSiNUlpNwuB8LigYgiau5cFb0GJfhMt2ftkKvCcswUX3VeAblBzSzbSgUmGAbTy4RL8aH3wFRca8mCg/ZT71hqeOr4/SJupgABJ4hLrtlXPKT9PwMH/Es3OHvWaV5MIimWn19SMtO1KlzYj/BGI7Ta0ZbKOudiWXHapIZem+CTHNdne8OSt1zF+29Q=
