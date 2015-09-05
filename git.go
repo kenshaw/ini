@@ -8,16 +8,15 @@ import (
 	"github.com/knq/ini/parser"
 )
 
-/*
-	Gitconfig style name manipulation allowing for subsections.
-
-	Use this by setting File.SectionManipFunc.
-
-	Example:
-		f := ini.LoadString(`...`)
-		f.SectionManipFunc = ini.GitSectionManipFunc
-		f.SectionNameFunc = ini.GitSectionNameFunc
-*/
+// GitSectionManipFunc is a helper method to manipulate sections in ini files
+// in a Gitconfig compatible way and provides subsection functionality.
+//
+// Use it by setting File.SectionManipFunc.
+//
+// Example:
+//		f := ini.LoadString(`...`)
+//		f.SectionManipFunc = ini.GitSectionManipFunc
+//		f.SectionNameFunc = ini.GitSectionNameFunc
 func GitSectionManipFunc(name string) string {
 	n, sub := parser.NameSplitFunc(name)
 
@@ -38,18 +37,17 @@ func GitSectionManipFunc(name string) string {
 	return fmt.Sprintf("%s%s", n, s)
 }
 
-/*
-	Gitconfig style section name formatting.
-
-	Effectively inverse of GitSectionManipFunc.
-
-	Use this by setting File.SectionNameFunc.
-
-	Example:
-		f := ini.LoadString(`...`)
-		f.SectionManipFunc = ini.GitSectionManipFunc
-		f.SectionNameFunc = ini.GitSectionNameFunc
-*/
+// GitSectionNameFunc is a helper method to manipulate section names in ini
+// files in a Gitconfig compatible way and provides subsection functionality.
+//
+// Effectively inverse of GitSectionManipFunc.
+//
+// Use this by setting File.SectionNameFunc.
+//
+// Example:
+//		f := ini.LoadString(`...`)
+//		f.SectionManipFunc = ini.GitSectionManipFunc
+//		f.SectionNameFunc = ini.GitSectionNameFunc
 func GitSectionNameFunc(name string) string {
 	// remove " from string
 	n := strings.Replace(strings.TrimSpace(name), "\"", "", -1)

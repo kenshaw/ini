@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// A parsed ini File.
+// File represents parsed ini data.
 type File struct {
 	// lines in file
 	lines []*Line
@@ -38,7 +38,7 @@ type File struct {
 	NameSplitFunc func(string) (string, string)
 }
 
-// Create a new ini file from passed lines.
+// NewFile creates a new ini.File from provided lines.
 func NewFile(lines []*Line) *File {
 	// create ret object
 	ret := &File{
@@ -81,7 +81,7 @@ func NewFile(lines []*Line) *File {
 	return ret
 }
 
-// File Stringer.
+// String returns formatted ini file data.
 func (f File) String() string {
 	var buf bytes.Buffer
 
@@ -105,12 +105,13 @@ func (f *File) Write(filename string) error {
 	return err
 }
 
-// Get line count.
+// LineCount returns the line count.
 func (f *File) LineCount() int {
 	return len(f.lines)
 }
 
-// Get raw section names in File.
+// RawSectionNames returns all section names from File in a raw (unmanipulated)
+// format.
 func (f *File) RawSectionNames() []string {
 	names := make([]string, len(f.sections))
 	for i, s := range f.sections {
@@ -119,7 +120,7 @@ func (f *File) RawSectionNames() []string {
 	return names
 }
 
-// Get section names in File.
+// SectionNames returns all section names from File.
 //
 // Section names are passed through SectionNameFunc.
 func (f *File) SectionNames() []string {
@@ -130,7 +131,7 @@ func (f *File) SectionNames() []string {
 	return names
 }
 
-// Add section with raw name.
+// AddSectionRaw adds a Section to File with a raw (unmanipulated) name.
 //
 // Returns the created Section.
 func (f *File) AddSectionRaw(name string) *Section {
@@ -165,7 +166,7 @@ func (f *File) AddSectionRaw(name string) *Section {
 	return s
 }
 
-// Add section to File.
+// AddSection adds a Section to File.
 //
 // Section name is passed through file's SectionManipFunc.
 //
@@ -174,7 +175,8 @@ func (f *File) AddSection(name string) *Section {
 	return f.AddSectionRaw(f.SectionManipFunc(name))
 }
 
-// Compares two section names.
+// sectionNameComp compares provided Section names to determine if they are
+// equal.
 //
 // Uses f.SectionCompFunc if present, otherwise compares result of
 // SectionNameFunc(a) == SectionNameFunc(b).
@@ -186,8 +188,8 @@ func (f *File) sectionNameComp(a, b string) bool {
 	return f.SectionNameFunc(a) == f.SectionNameFunc(b)
 }
 
-// Get a section and its starting line number.
-func (f *File) _getSection(name string) (*Section, int) {
+// getSection Get a section and its starting line number.
+func (f *File) getSection(name string) (*Section, int) {
 	n := f.SectionManipFunc(name)
 
 	// blank section isn't actually defined ...
@@ -205,13 +207,15 @@ func (f *File) _getSection(name string) (*Section, int) {
 	return nil, -1
 }
 
-// Get Section from File.
+// GetSection returns a Section with provided name from File.
 func (f *File) GetSection(name string) *Section {
-	s, _ := f._getSection(name)
+	s, _ := f.getSection(name)
 	return s
 }
 
-// Set section and key values from map.
+// SetMap sets all Section and Key values from provided map.
+//
+// Replaces values if the key already exists, or adds them otherwise.
 func (f *File) SetMap(values map[string]map[string]string) {
 	for name, keys := range values {
 		section := f.GetSection(name)
@@ -225,7 +229,7 @@ func (f *File) SetMap(values map[string]map[string]string) {
 	}
 }
 
-// Get sections and key values as map.
+// GetMap returns all sections and key values as map.
 func (f *File) GetMap() map[string]map[string]string {
 	ret := make(map[string]map[string]string)
 
@@ -241,14 +245,14 @@ func (f *File) GetMap() map[string]map[string]string {
 	return ret
 }
 
-// Set section and key values from flat map.
+// SetMapFlat sets section and key values from a flat map.
 func (f *File) SetMapFlat(values map[string]string) {
 	for key, value := range values {
 		f.SetKey(key, value)
 	}
 }
 
-// Get keys and values as flat map.
+// GetMapFlat retrieves all sections and keys and values as flat map.
 func (f *File) GetMapFlat() map[string]string {
 	ret := make(map[string]string)
 
@@ -266,22 +270,22 @@ func (f *File) GetMapFlat() map[string]string {
 	return ret
 }
 
-// Rename Section in File.
+// RenameSectionRaw renames a Section in File using raw (unmanipulated) names.
 func (f *File) RenameSectionRaw(name, value string) {
 	s := f.GetSection(name)
 	s.name = value
 }
 
-// Rename section in File.
+// RenameSection renames a Section in File.
 //
 // Value will be passed through the File's SectionManipFunc.
 func (f *File) RenameSection(name, value string) {
 	f.RenameSectionRaw(name, f.SectionManipFunc(value))
 }
 
-// Remove section and all related lines from File.
+// RemoveSection removes a Section and all related lines from File.
 func (f *File) RemoveSection(name string) {
-	section, start := f._getSection(name)
+	section, start := f.getSection(name)
 	if section == nil {
 		return
 	}
@@ -319,7 +323,7 @@ func (f *File) RemoveSection(name string) {
 	f.sections = append(f.sections[:pos], f.sections[pos+1:]...)
 }
 
-// Set key in File with name in form of section.key.
+// SetKey sets a Key's value in File with name in form of section.key.
 //
 // If no section is specified, then the empty (first) section is used.
 //
@@ -336,7 +340,8 @@ func (f *File) SetKey(key, value string) {
 	section.SetKey(k, value)
 }
 
-// Retrieve key from File with name in form of section.key.
+// GetKey retrieves a stored Key value from File with name in form of
+// section.key.
 //
 // If no section is specified, then the key will be looked for in the empty
 // (first) section.
@@ -354,7 +359,8 @@ func (f *File) GetKey(key string) string {
 	return section.Get(k)
 }
 
-// Remove key from file with name in form of section.key.
+// RemoveKey removes a Key and its value from file with name in form of
+// section.key.
 //
 // If no section is specified, then the empty (first) section is used.
 //

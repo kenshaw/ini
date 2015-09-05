@@ -1,8 +1,6 @@
-/*
-	Simple package to read/write/manipulate ini files.
-
-	Mainly a frontend to http://github.com/knq/ini/parser
-*/
+// Package ini provides a simple package to read/write/manipulate ini files.
+//
+// Mainly a frontend to http://github.com/knq/ini/parser
 package ini
 
 import (
@@ -27,9 +25,9 @@ type File struct {
 	Filename     string // filename to read/write from/to
 }
 
-// Create a new File.
+// NewFile creates a new File.
 func NewFile() *File {
-	lines := make([]*parser.Line, 0)
+	var lines []*parser.Line
 	inifile := parser.NewFile(lines)
 
 	return &File{
@@ -50,8 +48,8 @@ func (f *File) Save() error {
 	return f.Write(f.Filename)
 }
 
-// Sanitizes the file data from source by ensuring there is at least one blank
-// line in the stream.
+// sanitizeData sanitizes the file data from source by ensuring there is at
+// least one blank line in the stream.
 func sanitizeData(r io.Reader) ([]byte, error) {
 	// read all data in
 	data, err := ioutil.ReadAll(r)
@@ -67,7 +65,7 @@ func sanitizeData(r io.Reader) ([]byte, error) {
 	return data, nil
 }
 
-// Passes the filename/reader to ini.Parser.Parse.
+// parse passes the filename/reader to ini.Parser.Parse.
 func parse(name, filename string, r io.Reader) (*File, error) {
 	// sanitize data first (make sure file ends with '\n')
 	data, err := sanitizeData(r)
@@ -101,13 +99,13 @@ func Load(r io.Reader) (*File, error) {
 	return parse("<io.Reader>", "", r)
 }
 
-// Load ini file from string.
+// LoadString loads ini file from string.
 func LoadString(inistr string) (*File, error) {
 	r := strings.NewReader(inistr)
 	return parse("<string>", "", r)
 }
 
-// Load ini data from filename.
+// LoadFile loads ini data from a file with specified filename.
 //
 // If the filename doesn't exist, then an empty File is returned. The data can
 // then be written to disk using File.Save, or parser.File.Write.

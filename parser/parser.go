@@ -1,8 +1,6 @@
-/*
-	Pigeon-based parser that implements a ini file parser.
-
-	Please see http://godoc.org/github.com/knq/ini for the frontend package.
-*/
+// Package parser is a Pigeon-based ini file parser.
+//
+// Please see http://godoc.org/github.com/knq/ini for the frontend package.
 package parser
 
 //go:generate ./generate.sh
@@ -13,13 +11,15 @@ import (
 )
 
 var (
-	// Default Key Whitespace
+	// DefaultLeadingKeyWhitespace is the default leading whitespace for
+	// non-blank section keys
 	DefaultLeadingKeyWhitespace = "\t"
 
-	// Default line ending for new lines added to file
+	// DefaultLineEnding is the default line ending for new lines added to file
 	DefaultLineEnding = "\n"
 
-	// Separator token for section.name style keys
+	// DefaultNameKeySeparator is the default separator token for section.name
+	// style keys
 	DefaultNameKeySeparator = "."
 
 	// last position
@@ -29,7 +29,7 @@ var (
 	lastText string
 )
 
-// Section Name Manipulation Function.
+// SectionManipFunc manipulates a Section name.
 //
 // This function is used when a section name is created or altered.
 //
@@ -38,19 +38,19 @@ func SectionManipFunc(name string) string {
 	return strings.TrimSpace(strings.ToLower(name))
 }
 
-// Section Name Format Function.
+// SectionNameFunc formats a Section name.
 //
-// This function is used to format (normalized) the section name for output.
+// This function is used to format (normalize) Section names.
 //
 // Override on a per-File basis by setting File.SectionNameFunc.
 func SectionNameFunc(name string) string {
 	return strings.TrimSpace(strings.ToLower(name))
 }
 
-// Key Manipulation Function.
+// KeyManipFunc manipulates Key names.
 //
 // Takes a key name and returns the value that used. By default does
-// TrimSpace(ToLower(key)).
+// strings.TrimSpace(strings.ToLower(key)).
 //
 // This function is used when a key is created or altered.
 //
@@ -59,7 +59,7 @@ func KeyManipFunc(key string) string {
 	return strings.TrimSpace(strings.ToLower(key))
 }
 
-// Key Comparison Function.
+// KeyCompFunc is used to compare Key names on get/set.
 //
 // Passes keys a, b through KeyManipFunc and returns string equality.
 //
@@ -70,11 +70,11 @@ func KeyCompFunc(a, b string) bool {
 	return KeyManipFunc(a) == KeyManipFunc(b)
 }
 
-// Section Name Split Function.
+// NameSplitFunc splits Section names.
 //
 // Splits names based on DefaultNameKeySeparator.
 //
-// Returns section, key name.
+// Returns section, key.
 //
 // This function is used to split keys when being retrieved or set on a File.
 //
@@ -90,21 +90,19 @@ func NameSplitFunc(name string) (string, string) {
 	return name[:idx], name[idx+1:]
 }
 
-// Value Manipulation Function.
-//
-// This function is used when a key is set.
+// ValueManipFunc manipulates values when setting a key value.
 //
 // Override on a per-File basis by setting File.ValueManipFunc.
 func ValueManipFunc(value string) string {
 	return strings.TrimSpace(value)
 }
 
-// Retrieve the last error encountered during parsing.
+// LastError returns the last error encountered (if any) during parsing.
 func LastError() error {
 	return fmt.Errorf("error on line %d:%d near '%s'", lastPosition.line, lastPosition.col, lastText)
 }
 
-// Common interface to Comment, Section, and KeyValuePair.
+// Item is the shared interface for Comment, Section, and KeyValuePair.
 type Item interface {
 	String() string
 }
@@ -118,7 +116,7 @@ type Line struct {
 	le   string
 }
 
-// New Line.
+// NewLine creates a new line.
 func NewLine(pos position, ws string, item Item, le string) *Line {
 	return &Line{
 		pos: pos,
@@ -129,7 +127,7 @@ func NewLine(pos position, ws string, item Item, le string) *Line {
 	}
 }
 
-// Line Stringer.
+// String returns a formatted line.
 func (l Line) String() string {
 	item := ""
 	if l.item != nil {
@@ -147,7 +145,7 @@ type Comment struct {
 	comment string // actual comment
 }
 
-// New Comment.
+// NewComment creates a new Comment.
 func NewComment(pos position, cs string, comment string) *Comment {
 	return &Comment{
 		pos: pos,
@@ -157,12 +155,12 @@ func NewComment(pos position, cs string, comment string) *Comment {
 	}
 }
 
-// Comment Stringer.
+// String returns a formatted comment.
 func (c Comment) String() string {
 	return fmt.Sprintf("%s%s", c.cs, c.comment)
 }
 
-// Key Value Pair in a File.
+// KeyValuePair in a File.
 type KeyValuePair struct {
 	//section *Section
 
@@ -175,7 +173,7 @@ type KeyValuePair struct {
 	comment *Comment
 }
 
-// New Key Value Pair.
+// NewKeyValuePair creates a new key value pair.
 func NewKeyValuePair(pos position, key, ws, value string, comment *Comment) *KeyValuePair {
 	return &KeyValuePair{
 		pos: pos,
@@ -187,7 +185,7 @@ func NewKeyValuePair(pos position, key, ws, value string, comment *Comment) *Key
 	}
 }
 
-// Key Value Pair Stringer.
+// String returns a formatted key value pair.
 func (kvp KeyValuePair) String() string {
 	comment := ""
 	if kvp.comment != nil {
