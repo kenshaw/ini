@@ -1,16 +1,15 @@
 language: go
-go:
-- 1.4
-- 1.5
-- tip
-before_install:
-- go get golang.org/x/tools/cmd/cover
-- go get github.com/axw/gocov/gocov
-- go get github.com/mattn/goveralls
-script:
-- go test -v -covermode=count -coverprofile=coverage.out -coverpkg=github.com/knq/ini,github.com/knq/ini/parser
-- perl -pi -e "s'^github.com/knq/ini/parser/pigeon\.go.*\n''" coverage.out
-- "$HOME/gopath/bin/goveralls -service=travis-ci -coverprofile=coverage.out"
 notifications:
   slack:
-    secure: RBDyZfKEzyRgTAJIlwXwmKigYJTOCaVs+0PbK4QDFpLheNK4v0usOTeo8qE2XE1u+HOG4qOHstVRDxPBHGguDa/d15u+bnajJ5lYQv1l9coNCchM5TxeSTQnvvkBQ0T2UUbYaFe3Q9cgP5YFGSEVupgaRI5uUVGNK6gYxcOHsDHRvTXbGjHKd6LS5v7teJ/hS23ELaTTjJkadsJtgTdjrIL8JsyQi9WeDVXif/isGENF9xj+1UL8fPHzdeO0HDkLc4N+oHFcXDnnZaTWid+6EAbXwucsFA2Hi4dlVTUbgssGngs6oLKDeGqjBHl1IRCck89m3GgyNAWbYuC8gugLGak6C/aU0uU45WCTb8dO761wmbG8KaesEG2mLFUreCbTdztYLBeIIMfE7RBWu81A9QIeOthn89N/BzXyXY0YEwpefLzni+EX1cND4ewXSM3cAvw72ui9SSZNRatayGsOsvLGj8fAC49CgyjZcBIjxhxcKWNCfrSiNUlpNwuB8LigYgiau5cFb0GJfhMt2ftkKvCcswUX3VeAblBzSzbSgUmGAbTy4RL8aH3wFRca8mCg/ZT71hqeOr4/SJupgABJ4hLrtlXPKT9PwMH/Es3OHvWaV5MIimWn19SMtO1KlzYj/BGI7Ta0ZbKOudiWXHapIZem+CTHNdne8OSt1zF+29Q=
+    secure: wFLuLRLv6F7e2SCkQquwjoKZER30yeMQLKRhyt1kbxqlU4w9FkAnynWPbIKDCg45MAJSBrjas0nyKP8pI4qX1m2NrE0g7dE6gGD9+FlAqWHVLnT3DA2aKi0kvqNWU9Okby2ENOMgb5R7kUY0XBkk3L05pe4cVkn/0xhAGlUAlRzTJkSaRoxcQMrADpOdgHiZwtZ66WuldqTJk7oFLhuhpUQwagFtTl0hgyQ7/PeIXaYpGovpW/P/5q4xctkQX+8zAJg81P3geTvwaaqPY3qWHTkff872HSPCV5igxobUbGTVF91clyG2RlldlUg6Bj0/BNCRbxzXUo6JPg0IErlaZYVgez53jJqwn4yErMO1zLyGYHOHNJVJkZxso0a8YnWueoW0gKdUmy4GmaWoJYtCo8kKRI+HJ1ZjW/CJICyLlMz84M5MILGy7URJAhF2bp1EUddZnf0A/1vF4M3ZvrCED/U7gfiYfU2ZJuxWP10nx9by6TVcge1a/TTnvydCtVxdYyxpZCD0C4Ig6uKm+ZHKaxFlb4EaXqqzkNGBtmRxw21BEXu2oseXP52ookBVtirOuQGPtb4EBXeIzpoWfO3prt2WH8kHMLaydmLIc0ctQHY+bAaZk2ITctl45aI0X7NsgpwCGYHYC3lVZXmjocuCYHiPgzDAy05qNqXEEn/1DtQ=
+go:
+  - 1.5
+  - tip
+before_install:
+  - go get golang.org/x/tools/cmd/cover
+  - go get github.com/axw/gocov/gocov
+  - go get github.com/mattn/goveralls
+  - go get github.com/pierrre/gotestcover
+script:
+  - gotestcover -v -race -coverprofile=coverage.out ./...
+  - goveralls -service=travis-ci -coverprofile=coverage.out
