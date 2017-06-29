@@ -1,17 +1,17 @@
 # About ini [![Build Status](https://travis-ci.org/knq/ini.svg)](https://travis-ci.org/knq/ini) [![Coverage Status](https://coveralls.io/repos/knq/ini/badge.svg?branch=master&service=github)](https://coveralls.io/github/knq/ini?branch=master) #
 
-A simple [Go](http://www.golang.org/project/) package for manipulating 
+A simple [Go](http://www.golang.org/project/) package for manipulating
 [ini files](https://en.wikipedia.org/wiki/INI_file).
 
 This package is mostly a simple wrapper around the [parser package](/parser)
-also in this repository. The parser package was implemented by generating a 
-[Pigeon](https://github.com/PuerkitoBio/pigeon/) parser from a
+also in this repository. The parser package was implemented by generating a
+[Pigeon](https://github.com/mna/pigeon/) parser from a
 [PEG grammar](https://en.wikipedia.org/wiki/Parsing_expression_grammar).
 
 This package can (with the correct configuration), correctly read [git
 configuration](http://git-scm.com/docs/git-config) files, very simple
 [TOML](https://github.com/toml-lang/toml) files, and [Java
-Properties](https://en.wikipedia.org/wiki/.properties) files. 
+Properties](https://en.wikipedia.org/wiki/.properties) files.
 
 ## Why Another ini File Package? ##
 
