@@ -3,7 +3,7 @@
 // Please see http://godoc.org/github.com/knq/ini for the frontend package.
 package parser
 
-//go:generate ./generate.sh
+//go:generate ./gen.sh
 
 import (
 	"fmt"
