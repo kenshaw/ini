@@ -1,3 +1,4 @@
+// examples/test2/main.go
 package main
 
 import (
@@ -26,7 +27,7 @@ var (
 func main() {
 	f, err := ini.LoadString(data)
 	if err != nil {
-		log.Fatalf("error: %s\n", err)
+		log.Fatal(err)
 	}
 
 	s := f.GetSection("some section")
@@ -38,7 +39,7 @@ func main() {
 	// create a gitconfig parser
 	g, err := ini.LoadString(gitconfig)
 	if err != nil {
-		log.Fatalf("error: %s\n", err)
+		log.Fatal(err)
 	}
 
 	// setup gitconfig name/key manipulation functions

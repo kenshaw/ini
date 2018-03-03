@@ -1,8 +1,9 @@
+// examples/simple/main.go
 package main
 
 import (
 	"fmt"
-	"os"
+	"log"
 
 	"github.com/knq/ini"
 )
@@ -61,11 +62,9 @@ key = value # another comment
 func main() {
 	inifile, err := ini.LoadString(data)
 	if err != nil {
-		fmt.Printf("ERROR: %s\n", err.Error())
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
-	//fmt.Printf(">> inifile: '%s'\n", inifile)
 	val := inifile.GetKey("sect123.awesome")
 	fmt.Printf(">> val: %s\n", val)
 }

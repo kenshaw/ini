@@ -632,15 +632,16 @@ func TestCustomSectionCompFunc(t *testing.T) {
 }
 
 func TestMaps(t *testing.T) {
+	var err error
+
 	tmpfile, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatal("could not create temporary file")
 	}
-
 	tmpfile.Close()
 
 	defer func() {
-		err := os.Remove(tmpfile.Name())
+		err = os.Remove(tmpfile.Name())
 		if err != nil {
 			t.Fatalf("could not remove temporary file %s", tmpfile.Name())
 		}

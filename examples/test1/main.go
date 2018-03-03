@@ -1,3 +1,4 @@
+// examples/test1/main.go
 package main
 
 import (
@@ -9,7 +10,7 @@ import (
 func main() {
 	f, err := ini.LoadFile("blah.ini")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
 	sect := f.GetSection("newSection 7")
@@ -26,6 +27,6 @@ func main() {
 	err = f.Save()
 	log.Printf(">>>> file: '%s'\n", f)
 	if err != nil {
-		log.Printf(">>>> error: '%s'", err.Error())
+		log.Fatal(err)
 	}
 }

@@ -1,43 +1,40 @@
-# About ini [![Build Status](https://travis-ci.org/knq/ini.svg)](https://travis-ci.org/knq/ini) [![Coverage Status](https://coveralls.io/repos/knq/ini/badge.svg?branch=master&service=github)](https://coveralls.io/github/knq/ini?branch=master) #
+# About ini [![Build Status][t-badge]][t-link] [![Coverage][c-badge]][c-link]
 
-A simple [Go](http://www.golang.org/project/) package for manipulating
-[ini files](https://en.wikipedia.org/wiki/INI_file).
+`ini` is a simple [Go][go-project] package for manipulating [ini files][wiki-ini].
 
-This package is mostly a simple wrapper around the [parser package](/parser)
-also in this repository. The parser package was implemented by generating a
-[Pigeon](https://github.com/mna/pigeon/) parser from a
-[PEG grammar](https://en.wikipedia.org/wiki/Parsing_expression_grammar).
+`ini` is mostly a simple wrapper around the [`ini/parser` package](/parser)
+also contained in this repository. `ini/parser` was implemented by generating a
+[Pigeon][pigeon] parser from a [PEG grammar][wiki-peg].
 
-This package can (with the correct configuration), correctly read [git
-configuration](http://git-scm.com/docs/git-config) files, very simple
-[TOML](https://github.com/toml-lang/toml) files, and [Java
-Properties](https://en.wikipedia.org/wiki/.properties) files.
+With the correct configuration, the `ini` package is able to read [git
+config][git-config] files, very simple [TOML][toml] files, and [Java
+Properties][wiki-dotproperties] files.
 
-## Why Another ini File Package? ##
+## Why Another ini Package? ##
 
 Prior to writing this package, a number of existing Go ini packages/parsers
-were investigated. The available packages at the time did not have a complete
-feature set needed, did not work well with badly formatted files, or their
-parsers were not easily fixable.
+were investigated. The packages available at the time did not possess the
+complete feature set needed: specifically, the available packages did not work
+well with badly formatted files (and their parsers were not easily fixable),
+they would erase any comments/spacing when writing out a modified ini file, and
+they were not written in [idiomatic Go][go-idiomatic].
 
-As such, it was deemed necessary to write a package that could work with a
+As such, it was necessary to author a new package that could work with a
 variety of badly formatted ini files, in idiomatic Go, and provide a simple
 interface to reading/writing/manipulating ini files.
 
-## Installation ##
+## Installing ##
 
-Install the package via the following:
+Install in the usual Go fashion:
 
     go get -u github.com/knq/ini
 
-## Usage ##
+## Using ##
 
-Please see [the GoDoc API page](http://godoc.org/github.com/knq/ini) for a full
-API listing.
-
-The ini package can be used similarly to the following:
+`ini` can be used similarly to the following:
 
 ```go
+// examples/test2/main.go
 package main
 
 import (
@@ -66,7 +63,7 @@ var (
 func main() {
 	f, err := ini.LoadString(data)
 	if err != nil {
-		log.Fatalf("error: %s\n", err)
+		log.Fatal(err)
 	}
 
 	s := f.GetSection("some section")
@@ -78,7 +75,7 @@ func main() {
 	// create a gitconfig parser
 	g, err := ini.LoadString(gitconfig)
 	if err != nil {
-		log.Fatalf("error: %s\n", err)
+		log.Fatal(err)
 	}
 
 	// setup gitconfig name/key manipulation functions
@@ -88,3 +85,19 @@ func main() {
 	fmt.Printf("difftool.gdmp.cmd: %s\n", g.GetKey("difftool.gdmp.cmd"))
 }
 ```
+
+Please see [the GoDoc API page][godoc] for a full API listing.
+
+[c-badge]: https://coveralls.io/repos/github/knq/ini/badge.svg?branch=master
+[c-link]: https://coveralls.io/github/knq/ini?branch=master
+[git-config]: http://git-scm.com/docs/git-config
+[godoc]: http://godoc.org/github.com/knq/ini
+[go-idiomatic]: https://golang.org/doc/effective_go.html
+[go-project]: http://www.golang.org/project/
+[pigeon]: https://github.com/mna/pigeon/
+[t-badge]: https://travis-ci.org/knq/ini.svg
+[t-link]: https://travis-ci.org/knq/ini
+[toml]: https://github.com/toml-lang/toml
+[wiki-dotproperties]: https://en.wikipedia.org/wiki/.properties
+[wiki-ini]: https://en.wikipedia.org/wiki/INI_file
+[wiki-peg]: https://en.wikipedia.org/wiki/Parsing_expression_grammar
