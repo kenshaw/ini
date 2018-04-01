@@ -5,7 +5,6 @@ package ini
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -14,6 +13,30 @@ import (
 
 	"github.com/knq/ini/parser"
 )
+
+// Error is a ini error.
+type Error string
+
+// Error satisfies the error interface.
+func (err Error) Error() string {
+	return string(err)
+}
+
+// Error values.
+const (
+	ErrNoFilenameSupplied Error = "no filename supplied"
+)
+
+// ParseError is a ini parse error.
+type ParseError struct {
+	name string
+	err  error
+}
+
+// Error satisfies the error interface.
+func (err *ParseError) Error() string {
+	return fmt.Sprintf("unable to parse %s: %v", err.name, err.err)
+}
 
 // File wraps parser.File with information about an ini file.
 //
@@ -37,7 +60,7 @@ func NewFile() *File {
 // encountered during write. Simple wrapper around parser.File.Write.
 func (f *File) Save() error {
 	if f.Filename == "" {
-		return errors.New("no filename supplied")
+		return ErrNoFilenameSupplied
 	}
 	return f.Write(f.Filename)
 }
@@ -53,13 +76,13 @@ func Parse(name, filename string, r io.Reader) (*File, error) {
 	// pass through ini/parser package
 	f, err := parser.Parse(name, buf)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse %s: %v", name, parser.LastError().Error())
+		return nil, &ParseError{name, parser.LastError()}
 	}
 
 	// convert to *parser.File
 	inifile, ok := f.(*parser.File)
 	if !ok {
-		return nil, fmt.Errorf("unknown error encountered parsing %s: %v", name, parser.LastError().Error())
+		return nil, &ParseError{name, parser.LastError()}
 	}
 
 	return &File{
