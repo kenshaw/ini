@@ -88,6 +88,10 @@ func main() {
 
 Please see [the GoDoc API page][godoc] for a full API listing.
 
+## TODO
+
+* convert to github.com/alecthomas/participle parser
+
 [c-badge]: https://coveralls.io/repos/github/knq/ini/badge.svg?branch=master
 [c-link]: https://coveralls.io/github/knq/ini?branch=master
 [git-config]: http://git-scm.com/docs/git-config
