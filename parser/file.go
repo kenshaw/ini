@@ -92,6 +92,11 @@ func (f File) String() string {
 	return buf.String()
 }
 
+// AllSections returns all sections from File.
+func (f *File) AllSections() []*Section {
+	return f.sections
+}
+
 // Write to filename.
 func (f *File) Write(filename string) error {
 	file, err := os.Create(filename)
