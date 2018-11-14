@@ -86,21 +86,23 @@ func (s *Section) getInsertLocation(idx int) int {
 func (s *Section) getKey(key string) (*KeyValuePair, int) {
 	// loop over lines and find the key
 	lastSectionName := ""
+	var lastSectionPos position
 	for lastIdx, l := range s.file.lines {
 		switch l.item.(type) {
 		case *Section:
-			if lastSectionName == s.name {
+			if lastSectionName == s.name && lastSectionPos == s.pos {
 				// must be entering a new section; so not found, return
 				return nil, s.getInsertLocation(lastIdx - 1)
 			}
 
 			sect, _ := l.item.(*Section)
 			lastSectionName = sect.name
+			lastSectionPos = sect.pos
 
 		case *KeyValuePair:
 			kvp, _ := l.item.(*KeyValuePair)
 			//fmt.Printf(">>> compare: %s//%s :: %s//%s\n", lastSectionName, s.name, kvp.key, key)
-			if lastSectionName == s.name && s.file.KeyCompFunc(kvp.key, key) {
+			if (lastSectionName == s.name && lastSectionPos == s.pos) && s.file.KeyCompFunc(kvp.key, key) {
 				return kvp, lastIdx
 			}
 		}

@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	complexString = `   ;comment1 
+	complexString = `   ;comment1
 	defkey1= defvalue1
 	defkey2=
 defkey3 = defvalue3 #comment2
 
   [   section1   ] #seccomment1
-      key1 = value1  
+      key1 = value1
 key2 = value2# comment3
 
           # comment4
@@ -34,6 +34,14 @@ test=foo
 
 test=bar
 	`
+
+	sectionsWithSameNameString = `
+[section]
+key=value
+
+[section]
+key=value1
+`
 )
 
 func TestParseBad(t *testing.T) {
@@ -629,6 +637,32 @@ func TestCustomSectionCompFunc(t *testing.T) {
 	if v1 != "v1" {
 		t.Error("using custom section comp func, section names should be ignored and v1 should be v1")
 	}
+}
+
+func TestSectionsWithSameName(t *testing.T) {
+	f, err := LoadString(sectionsWithSameNameString)
+	if err != nil {
+		t.Error("could not load sectionsWithSameNameString")
+	}
+
+	foundSections := 0
+	for _, sect := range f.AllSections() {
+		if sect.Name() == "" {
+			continue
+		}
+		if sect.Name() != "section" {
+			t.Fatalf("unexpected section name %q", sect.Name())
+		}
+		v := sect.Get("key")
+		if foundSections == 0 && v != "value" {
+			t.Errorf("key in first section should be \"value\", found %q", v)
+		}
+		if foundSections == 1 && v != "value1" {
+			t.Errorf("key in second section should be \"value1\", found %q", v)
+		}
+		foundSections += 1
+	}
+
 }
 
 func TestMaps(t *testing.T) {
