@@ -3,21 +3,25 @@ package ini
 import (
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 )
 
-var (
-	complexString = `   ;comment1
+const (
+	complexString = `   ;comment1 
 	defkey1= defvalue1
 	defkey2=
 defkey3 = defvalue3 #comment2
+defkey4 
+defkey5 ; comment3
+defkey6 # comment4
 
   [   section1   ] #seccomment1
-      key1 = value1
+      key1 = value1  
 key2 = value2# comment3
 
           # comment4
+key3
+key4 ; comment5
 
 [section2 ]
 
@@ -44,27 +48,13 @@ key=value1
 `
 )
 
-func TestParseBad(t *testing.T) {
-	_, err := LoadString("bad")
-	if err == nil {
-		t.Error("bad string should error")
-	}
-
-	r := strings.NewReader("bad")
-	_, err = Load(r)
-	if err == nil {
-		t.Error("bad string should error")
-	}
-}
-
 func TestParseEmpty(t *testing.T) {
 	f, err := LoadString(``)
 	if err != nil {
-		t.Error("could not load blank string")
+		t.Fatalf("could not load blank string: %v", err)
 	}
 
-	d0 := "\n"
-	if d0 != f.String() {
+	if f.String() != "\n" {
 		t.Error("new line should be added to blank string")
 	}
 }
@@ -72,7 +62,7 @@ func TestParseEmpty(t *testing.T) {
 func TestParseComplex(t *testing.T) {
 	f, err := LoadString(complexString)
 	if err != nil {
-		t.Error("could not load complexString")
+		t.Fatalf("could not load complexString: %v", err)
 	}
 
 	// test raw section name parsing
@@ -97,7 +87,7 @@ func TestParseComplex(t *testing.T) {
 func TestGetSectionAndSectionKeys(t *testing.T) {
 	f, err := LoadString(complexString)
 	if err != nil {
-		t.Error("could not load complexString")
+		t.Fatalf("could not load complexString: %v", err)
 	}
 
 	// check for nonexistent section name
@@ -107,8 +97,8 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 	}
 
 	sectionkeys := map[string][]string{
-		"":         {"defkey1", "defkey2", "defkey3"},
-		"section1": {"key1", "key2"},
+		"":         {"defkey1", "defkey2", "defkey3", "defkey4", "defkey5", "defkey6"},
+		"section1": {"key1", "key2", "key3", "key4"},
 		"section2": {},
 		"section3": {"s3key1", "s3key2"},
 		"毚饯襃ブみょ":   {"䥵妦飌ぞ盯"},
@@ -142,12 +132,12 @@ func TestGetSectionAndSectionKeys(t *testing.T) {
 func TestRawSectionKeys(t *testing.T) {
 	f, err := LoadString(complexString)
 	if err != nil {
-		t.Error("could not load complexString")
+		t.Fatalf("could not load complexString: %v", err)
 	}
 
 	rawkeys := map[string][]string{
-		"":         {"defkey1", "defkey2", "defkey3 "},
-		"section1": {"key1 ", "key2 "},
+		"":         {"defkey1", "defkey2", "defkey3 ", "defkey4 ", "defkey5 ", "defkey6 "},
+		"section1": {"key1 ", "key2 ", "key3", "key4 "},
 		"section2": {},
 		"section3": {"s3key1 ", "s3key2 "},
 		"毚饯襃ブみょ":   {"䥵妦飌ぞ盯 "},
@@ -181,16 +171,21 @@ func TestRawSectionKeys(t *testing.T) {
 func TestGetKey(t *testing.T) {
 	f, err := LoadString(complexString)
 	if err != nil {
-		t.Error("could not load complexString")
+		t.Fatalf("could not load complexString: %v", err)
 	}
 
 	keyvaluemap := map[string]string{
 		"defkey1":         "defvalue1",
 		"defkey2":         "",
 		"defkey3":         "defvalue3",
+		"defkey4":         "",
+		"defkey5":         "",
+		"defkey6":         "",
 		"defvalue4":       "",
 		"section1":        "",
 		"section1.key1":   "value1",
+		"section1.key3":   "",
+		"section1.key4":   "",
 		"SECTION1.KEY1":   "value1",
 		"section2.key":    "",
 		"section3.s3key1": "",
@@ -214,10 +209,10 @@ func TestGetKey(t *testing.T) {
 
 // test preservation of whitespace
 func TestPreservation(t *testing.T) {
-	d0 := " #com1  \n	[sect1 ] ;com2\n  k1 = v1  ;com3\n  k2=   \n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
+	d0 := " #com1  \n	[sect1 ] ;com2\n  k1 = v1  ;com3\n  k2=   \n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \nk5\nk6 \nk7 ;com5\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	// set some keys
@@ -226,7 +221,7 @@ func TestPreservation(t *testing.T) {
 	f.SetKey("sect3.k4", "")
 
 	// check whitespace has been preserved
-	d1 := " #com1  \n	[sect1 ] ;com2\n  k1 = v0;com3\n  k2=   v5\n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= \n	  \n"
+	d1 := " #com1  \n	[sect1 ] ;com2\n  k1 = v0;com3\n  k2=   v5\n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= \n	  \nk5\nk6 \nk7 ;com5\n"
 	if d1 != f.String() {
 		t.Error("SetKey should preserve all spacing and comments")
 	}
@@ -235,7 +230,7 @@ func TestPreservation(t *testing.T) {
 func TestAddSection(t *testing.T) {
 	f, err := LoadString("")
 	if err != nil {
-		t.Error("could not load blank string")
+		t.Fatalf("could not load blank string: %v", err)
 	}
 
 	f.AddSection("awesome")
@@ -260,7 +255,7 @@ func TestRenameSection(t *testing.T) {
 	d1 := " #com1  \n	[sect1 ] ;com2\n  k1 = v1  ;com3\n  k2=   \n  k3 = v3\n\n  [ sect2 ]\n  [sect3]\n  k4= v4 \n	  \n"
 	f, err := LoadString(d1)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	// verify that setkey works first
@@ -308,7 +303,7 @@ func TestRenameSection(t *testing.T) {
 func TestSetKey(t *testing.T) {
 	f, err := LoadString("")
 	if err != nil {
-		t.Error("could not load blank string")
+		t.Fatalf("could not load blank string: %v", err)
 	}
 
 	f.SetKey("sect1.key1", "val1")
@@ -336,7 +331,7 @@ func TestSameKey(t *testing.T) {
 	d0 := "[sect1]\nkey=val1\n[sect2]\nkey=val2\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	k1 := f.GetKey("sect1.key")
@@ -376,7 +371,7 @@ func TestSetKeyAdvanced(t *testing.T) {
 	d0 := "k0=val0\n\n\n[sect1]\nk1=v1\n\nk2=v2\nk3=v3\n\n\n[sect5]\nk6=val6\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	f.SetKey("k1", "val1")
@@ -402,7 +397,7 @@ func TestRemoveSection(t *testing.T) {
 	d0 := "[sect0]\nkey1=val1\n[sect1]\n[sect3]\nkey2=val2\n[sect4]\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	// test removing nonexistent
@@ -449,7 +444,7 @@ func TestRemoveKey(t *testing.T) {
 	d0 := "k0=val0\n[sect1]\nk1=val1\n\nk2=val2\n[sect2]\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	// test set key first
@@ -494,7 +489,7 @@ func TestGitStyleNames(t *testing.T) {
 	d0 := "  [  sect0   \"sub0\"  ] ;comment \n  k0 = v0  \n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	// force Gitconfig style names
@@ -598,7 +593,7 @@ func TestStringValues(t *testing.T) {
 	d0 := "k0=\"v0;#notacomment\"\nk1=\"line0\nline2\"\n"
 	f, err := LoadString(d0)
 	if err != nil {
-		t.Error("could not load string")
+		t.Fatalf("could not load string: %v", err)
 	}
 
 	v0 := f.GetKey("k0")
@@ -642,7 +637,7 @@ func TestCustomSectionCompFunc(t *testing.T) {
 func TestSectionsWithSameName(t *testing.T) {
 	f, err := LoadString(sectionsWithSameNameString)
 	if err != nil {
-		t.Error("could not load sectionsWithSameNameString")
+		t.Fatalf("could not load sectionsWithSameNameString: %v", err)
 	}
 
 	foundSections := 0
@@ -670,14 +665,14 @@ func TestMaps(t *testing.T) {
 
 	tmpfile, err := ioutil.TempFile("", "")
 	if err != nil {
-		t.Fatal("could not create temporary file")
+		t.Fatalf("could not create temporary file: %v", err)
 	}
 	tmpfile.Close()
 
 	defer func() {
 		err = os.Remove(tmpfile.Name())
 		if err != nil {
-			t.Fatalf("could not remove temporary file %s", tmpfile.Name())
+			t.Fatalf("could not remove temporary file %s: %v", tmpfile.Name(), err)
 		}
 	}()
 
@@ -720,7 +715,7 @@ func TestMaps(t *testing.T) {
 	// write to disk
 	err = f0.Save()
 	if err != nil {
-		t.Fatalf("could not save tmpfile: %s", err)
+		t.Fatalf("could not save tmpfile: %v", err)
 	}
 
 	// load data back
@@ -728,7 +723,7 @@ func TestMaps(t *testing.T) {
 	f1.SectionManipFunc = GitSectionManipFunc
 	f1.SectionNameFunc = GitSectionNameFunc
 	if err != nil {
-		t.Fatalf("could not open tmpfile: %s", err)
+		t.Fatalf("could not open tmpfile: %v", err)
 	}
 
 	expvalues := map[string]string{
@@ -770,7 +765,7 @@ func TestMaps(t *testing.T) {
 func TestLoadFileSave(t *testing.T) {
 	f, err := LoadFile("nonexistent")
 	if err != nil {
-		t.Error("there should not be an error loading nonexistent file")
+		t.Fatalf("there should not be an error loading nonexistent file: %v", err)
 	}
 
 	if f.Filename != "nonexistent" {

@@ -34,7 +34,7 @@ Install in the usual Go fashion:
 `ini` can be used similarly to the following:
 
 ```go
-// examples/test2/main.go
+// _examples/test2/main.go
 package main
 
 import (

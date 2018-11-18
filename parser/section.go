@@ -115,10 +115,9 @@ func (s *Section) getKey(key string) (*KeyValuePair, int) {
 // GetRaw returns the raw (unmanipulated) value for a key.
 func (s *Section) GetRaw(key string) string {
 	k, _ := s.getKey(key)
-	if k != nil {
-		return k.value
+	if k != nil && k.value != nil {
+		return *k.value
 	}
-
 	return ""
 }
 
@@ -139,7 +138,7 @@ func (s *Section) SetKeyValueRaw(key, value string) {
 
 	// key is present, set value
 	if k != nil {
-		k.value = value
+		k.value = &value
 		return
 	}
 
@@ -160,7 +159,7 @@ func (s *Section) SetKeyValueRaw(key, value string) {
 	}
 
 	// create the key and line
-	k = NewKeyValuePair(position{}, key, "", value, nil)
+	k = NewKeyValuePair(position{}, key, "", &value, nil)
 	line := NewLine(position{}, ws, k, le)
 
 	// insert line into s.file.lines

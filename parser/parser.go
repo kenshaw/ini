@@ -163,19 +163,17 @@ func (c Comment) String() string {
 
 // KeyValuePair in a File.
 type KeyValuePair struct {
-	//section *Section
-
 	pos position
 
 	key   string
 	ws    string
-	value string
+	value *string
 
 	comment *Comment
 }
 
 // NewKeyValuePair creates a new key value pair.
-func NewKeyValuePair(pos position, key, ws, value string, comment *Comment) *KeyValuePair {
+func NewKeyValuePair(pos position, key, ws string, value *string, comment *Comment) *KeyValuePair {
 	return &KeyValuePair{
 		pos: pos,
 
@@ -188,10 +186,12 @@ func NewKeyValuePair(pos position, key, ws, value string, comment *Comment) *Key
 
 // String returns a formatted key value pair.
 func (kvp KeyValuePair) String() string {
-	comment := ""
+	var comment string
 	if kvp.comment != nil {
 		comment = kvp.comment.String()
 	}
-
-	return fmt.Sprintf("%s=%s%s%s", kvp.key, kvp.ws, kvp.value, comment)
+	if kvp.value == nil {
+		return fmt.Sprintf("%s%s%s", kvp.key, kvp.ws, comment)
+	}
+	return fmt.Sprintf("%s=%s%s%s", kvp.key, kvp.ws, *kvp.value, comment)
 }
