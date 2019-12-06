@@ -274,6 +274,22 @@ func (f *File) GetMapFlat() map[string]string {
 	return ret
 }
 
+// GetAllFlat retrieves all sections and keys in the order they are in the
+// file, as set of name, values.
+func (f *File) GetAllFlat() []string {
+	var ret []string
+	for _, section := range f.sections {
+		name := section.Name()
+		if section.name != "" {
+			name = fmt.Sprintf("%s%s", name, DefaultNameKeySeparator)
+		}
+		for _, key := range section.keys {
+			ret = append(ret, fmt.Sprintf("%s%s", name, key), f.ValueManipFunc(section.GetRaw(key)))
+		}
+	}
+	return ret
+}
+
 // RenameSectionRaw renames a Section in File using raw (unmanipulated) names.
 func (f *File) RenameSectionRaw(name, value string) {
 	s := f.GetSection(name)
