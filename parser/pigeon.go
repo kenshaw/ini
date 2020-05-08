@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 )
@@ -132,11 +133,13 @@ var g = &grammar{
 										pos:        position{line: 40, col: 16, offset: 881},
 										val:        ";",
 										ignoreCase: false,
+										want:       "\";\"",
 									},
 									&litMatcher{
 										pos:        position{line: 40, col: 22, offset: 887},
 										val:        "#",
 										ignoreCase: false,
+										want:       "\"#\"",
 									},
 								},
 							},
@@ -166,6 +169,7 @@ var g = &grammar{
 							pos:        position{line: 47, col: 12, offset: 1120},
 							val:        "[",
 							ignoreCase: false,
+							want:       "\"[\"",
 						},
 						&labeledExpr{
 							pos:   position{line: 47, col: 16, offset: 1124},
@@ -179,6 +183,7 @@ var g = &grammar{
 							pos:        position{line: 47, col: 33, offset: 1141},
 							val:        "]",
 							ignoreCase: false,
+							want:       "\"]\"",
 						},
 						&labeledExpr{
 							pos:   position{line: 47, col: 37, offset: 1145},
@@ -224,6 +229,7 @@ var g = &grammar{
 							pos:        position{line: 55, col: 25, offset: 1406},
 							val:        "=",
 							ignoreCase: false,
+							want:       "\"=\"",
 						},
 						&labeledExpr{
 							pos:   position{line: 55, col: 29, offset: 1410},
@@ -392,6 +398,7 @@ var g = &grammar{
 							pos:        position{line: 100, col: 16, offset: 2723},
 							val:        "\"",
 							ignoreCase: false,
+							want:       "\"\\\"\"",
 						},
 						&zeroOrMoreExpr{
 							pos: position{line: 100, col: 20, offset: 2727},
@@ -404,6 +411,7 @@ var g = &grammar{
 							pos:        position{line: 100, col: 26, offset: 2733},
 							val:        "\"",
 							ignoreCase: false,
+							want:       "\"\\\"\"",
 						},
 						&ruleRefExpr{
 							pos:  position{line: 100, col: 30, offset: 2737},
@@ -431,11 +439,13 @@ var g = &grammar{
 											pos:        position{line: 107, col: 11, offset: 2909},
 											val:        "\"",
 											ignoreCase: false,
+											want:       "\"\\\"\"",
 										},
 										&litMatcher{
 											pos:        position{line: 107, col: 17, offset: 2915},
 											val:        "\\",
 											ignoreCase: false,
+											want:       "\"\\\\\"",
 										},
 									},
 								},
@@ -455,6 +465,7 @@ var g = &grammar{
 									pos:        position{line: 107, col: 27, offset: 2925},
 									val:        "\\",
 									ignoreCase: false,
+									want:       "\"\\\\\"",
 								},
 								&choiceExpr{
 									pos: position{line: 107, col: 33, offset: 2931},
@@ -473,6 +484,7 @@ var g = &grammar{
 													pos:        position{line: 107, col: 47, offset: 2945},
 													val:        "u",
 													ignoreCase: false,
+													want:       "\"u\"",
 												},
 												&ruleRefExpr{
 													pos:  position{line: 107, col: 51, offset: 2949},
@@ -543,6 +555,7 @@ var g = &grammar{
 						pos:        position{line: 128, col: 12, offset: 3530},
 						val:        "\r\n",
 						ignoreCase: false,
+						want:       "\"\\r\\n\"",
 					},
 					&actionExpr{
 						pos: position{line: 128, col: 21, offset: 3539},
@@ -551,6 +564,7 @@ var g = &grammar{
 							pos:        position{line: 128, col: 21, offset: 3539},
 							val:        "\n",
 							ignoreCase: false,
+							want:       "\"\\n\"",
 						},
 					},
 				},
@@ -1004,7 +1018,7 @@ type position struct {
 }
 
 func (p position) String() string {
-	return fmt.Sprintf("%d:%d [%d]", p.line, p.col, p.offset)
+	return strconv.Itoa(p.line) + ":" + strconv.Itoa(p.col) + " [" + strconv.Itoa(p.offset) + "]"
 }
 
 // savepoint stores all state required to go back to this point in the
@@ -1117,6 +1131,7 @@ type litMatcher struct {
 	pos        position
 	val        string
 	ignoreCase bool
+	want       string
 }
 
 type charClassMatcher struct {
@@ -1468,13 +1483,24 @@ type Cloner interface {
 	Clone() interface{}
 }
 
+var statePool = &sync.Pool{
+	New: func() interface{} { return make(storeDict) },
+}
+
+func (sd storeDict) Discard() {
+	for k := range sd {
+		delete(sd, k)
+	}
+	statePool.Put(sd)
+}
+
 // clone and return parser current state.
 func (p *parser) cloneState() storeDict {
 	if p.debug {
 		defer p.out(p.in("cloneState"))
 	}
 
-	state := make(storeDict, len(p.cur.state))
+	state := statePool.Get().(storeDict)
 	for k, v := range p.cur.state {
 		if c, ok := v.(Cloner); ok {
 			state[k] = c.Clone()
@@ -1491,6 +1517,7 @@ func (p *parser) restoreState(state storeDict) {
 	if p.debug {
 		defer p.out(p.in("restoreState"))
 	}
+	p.cur.state.Discard()
 	p.cur.state = state
 }
 
@@ -1603,7 +1630,7 @@ func listJoin(list []string, sep string, lastSep string) string {
 	case 1:
 		return list[0]
 	default:
-		return fmt.Sprintf("%s %s %s", strings.Join(list[:len(list)-1], sep), lastSep, list[len(list)-1])
+		return strings.Join(list[:len(list)-1], sep) + " " + lastSep + " " + list[len(list)-1]
 	}
 }
 
@@ -1899,11 +1926,6 @@ func (p *parser) parseLitMatcher(lit *litMatcher) (interface{}, bool) {
 		defer p.out(p.in("parseLitMatcher"))
 	}
 
-	ignoreCase := ""
-	if lit.ignoreCase {
-		ignoreCase = "i"
-	}
-	val := fmt.Sprintf("%q%s", lit.val, ignoreCase)
 	start := p.pt
 	for _, want := range lit.val {
 		cur := p.pt.rn
@@ -1911,13 +1933,13 @@ func (p *parser) parseLitMatcher(lit *litMatcher) (interface{}, bool) {
 			cur = unicode.ToLower(cur)
 		}
 		if cur != want {
-			p.failAt(false, start.position, val)
+			p.failAt(false, start.position, lit.want)
 			p.restore(start)
 			return nil, false
 		}
 		p.read()
 	}
-	p.failAt(true, start.position, val)
+	p.failAt(true, start.position, lit.want)
 	return p.sliceFrom(start), true
 }
 
