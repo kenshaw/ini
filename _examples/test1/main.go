@@ -4,7 +4,7 @@ package main
 import (
 	"log"
 
-	"github.com/knq/ini"
+	"github.com/kenshaw/ini"
 )
 
 func main() {

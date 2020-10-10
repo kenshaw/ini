@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knq/ini"
+	"github.com/kenshaw/ini"
 )
 
 var (

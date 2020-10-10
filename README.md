@@ -27,7 +27,7 @@ interface to reading/writing/manipulating ini files.
 
 Install in the usual Go fashion:
 
-    go get -u github.com/knq/ini
+    go get -u github.com/kenshaw/ini
 
 ## Using ##
 
@@ -41,7 +41,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knq/ini"
+	"github.com/kenshaw/ini"
 )
 
 var (
@@ -92,15 +92,15 @@ Please see [the GoDoc API page][godoc] for a full API listing.
 
 * convert to github.com/alecthomas/participle parser
 
-[c-badge]: https://coveralls.io/repos/github/knq/ini/badge.svg?branch=master
-[c-link]: https://coveralls.io/github/knq/ini?branch=master
+[c-badge]: https://coveralls.io/repos/github/kenshaw/ini/badge.svg?branch=master
+[c-link]: https://coveralls.io/github/kenshaw/ini?branch=master
 [git-config]: http://git-scm.com/docs/git-config
-[godoc]: http://godoc.org/github.com/knq/ini
+[godoc]: http://godoc.org/github.com/kenshaw/ini
 [go-idiomatic]: https://golang.org/doc/effective_go.html
 [go-project]: http://www.golang.org/project/
 [pigeon]: https://github.com/mna/pigeon/
-[t-badge]: https://travis-ci.org/knq/ini.svg
-[t-link]: https://travis-ci.org/knq/ini
+[t-badge]: https://travis-ci.org/kenshaw/ini.svg
+[t-link]: https://travis-ci.org/kenshaw/ini
 [toml]: https://github.com/toml-lang/toml
 [wiki-dotproperties]: https://en.wikipedia.org/wiki/.properties
 [wiki-ini]: https://en.wikipedia.org/wiki/INI_file

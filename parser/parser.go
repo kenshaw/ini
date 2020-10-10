@@ -1,6 +1,6 @@
 // Package parser is a Pigeon-based ini file parser.
 //
-// Please see http://godoc.org/github.com/knq/ini for the frontend package.
+// Please see http://godoc.org/github.com/kenshaw/ini for the frontend package.
 package parser
 
 //go:generate ./gen.sh

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/knq/ini/parser"
+	"github.com/kenshaw/ini/parser"
 )
 
 // GitSectionManipFunc is a helper method to manipulate sections in ini files

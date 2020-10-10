@@ -1,6 +1,6 @@
 // Package ini provides a simple package to read/write/manipulate ini files.
 //
-// Mainly a frontend to http://github.com/knq/ini/parser
+// Mainly a frontend to http://github.com/kenshaw/ini/parser
 package ini
 
 import (
@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/knq/ini/parser"
+	"github.com/kenshaw/ini/parser"
 )
 
 // Error is a ini error.

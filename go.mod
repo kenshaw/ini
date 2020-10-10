@@ -1,3 +1,3 @@
-module github.com/knq/ini
+module github.com/kenshaw/ini
 
-go 1.13
+go 1.15
